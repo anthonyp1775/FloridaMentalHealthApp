@@ -1,1 +1,2094 @@
-{ "info": { "name": "Florida Mental Health API", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" }, "item": [] }
+{
+  "info": {
+    "name": "Florida Mental Health API",
+    "description": "Converted from the Bruno collection. Same requests, same assertions. Run with the \"Local\" environment and the backend on localhost:8080, seeded. Folders run in order: Auth first, because later requests use the tokens it stores.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "Login as navigator (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{password}}\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// Stash the token so every later request can use it.",
+                  "  if (status === 200) {",
+                  "    pm.environment.set(\"adminToken\", body.token);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"returns a JWT\", function() {",
+                  "    pm.expect(body.token).to.be.a(\"string\");",
+                  "    pm.expect(body.token.split(\".\")).to.have.lengthOf(3);",
+                  "  });",
+                  "",
+                  "  pm.test(\"carries ROLE_ADMIN\", function() {",
+                  "    pm.expect(body.roles).to.include(\"ROLE_ADMIN\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as client (USER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"email\": \"{{clientEmail}}\",\n    \"password\": \"{{password}}\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 200) {",
+                  "    pm.environment.set(\"clientToken\", body.token);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"is NOT an admin\", function() {",
+                  "    pm.expect(body.roles).to.not.include(\"ROLE_ADMIN\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with wrong password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"email\": \"{{clientEmail}}\",\n    \"password\": \"definitely-not-the-password\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"401 Unauthorized\", function() {",
+                  "    pm.expect(status).to.equal(401);",
+                  "  });",
+                  "",
+                  "  // The message must be identical for a bad password and an unknown",
+                  "  // email. Distinguishing them lets an attacker enumerate accounts.",
+                  "  pm.test(\"message does not reveal whether the account exists\", function() {",
+                  "    pm.expect(body.message).to.equal(\"Email or password is incorrect\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register with invalid payload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"firstName\": \"\",\n    \"lastName\": \"Tester\",\n    \"email\": \"not-an-email\",\n    \"password\": \"short\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"400 Bad Request\", function() {",
+                  "    pm.expect(status).to.equal(400);",
+                  "  });",
+                  "",
+                  "  pm.test(\"names every offending field\", function() {",
+                  "    pm.expect(body.fieldErrors).to.have.property(\"firstName\");",
+                  "    pm.expect(body.fieldErrors).to.have.property(\"email\");",
+                  "    pm.expect(body.fieldErrors).to.have.property(\"password\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register duplicate email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"firstName\": \"Alicia\",\n    \"lastName\": \"Moreno\",\n    \"email\": \"{{clientEmail}}\",\n    \"password\": \"Password123\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"409 Conflict\", function() {",
+                  "    pm.expect(status).to.equal(409);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Catalog",
+      "item": [
+        {
+          "name": "Counties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "counties"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// Capture ids later requests need, so nothing is hardcoded.",
+                  "  if (status === 200) {",
+                  "    const miami = body.find(c => c.name === \"Miami-Dade\");",
+                  "    if (miami) pm.environment.set(\"countyMiamiDade\", miami.id);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"all 67 Florida counties\", function() {",
+                  "    pm.expect(body).to.have.lengthOf(67);",
+                  "  });",
+                  "",
+                  "  pm.test(\"each carries region and managing entity\", function() {",
+                  "    pm.expect(body[0]).to.have.property(\"region\");",
+                  "    pm.expect(body[0]).to.have.property(\"managingEntity\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Specialties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "specialties"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 200) {",
+                  "    const ptsd = body.find(s => s.name === \"PTSD & Trauma\");",
+                  "    if (ptsd) pm.environment.set(\"specialtyPtsd\", ptsd.id);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"returns clinical focus areas\", function() {",
+                  "    pm.expect(body.length).to.be.at.least(15);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Languages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/languages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "languages"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 200) {",
+                  "    const es = body.find(l => l.name === \"Spanish\");",
+                  "    if (es) pm.environment.set(\"languageSpanish\", es.id);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  // Both are first-order access barriers in Florida, not extras.",
+                  "  pm.test(\"includes Spanish and Haitian Creole\", function() {",
+                  "    const names = body.map(l => l.name);",
+                  "    pm.expect(names).to.include(\"Spanish\");",
+                  "    pm.expect(names).to.include(\"Haitian Creole\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Insurance plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/insurance-plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "insurance-plans"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"covers Medicaid, commercial and sliding scale\", function() {",
+                  "    const types = body.map(p => p.planType);",
+                  "    pm.expect(types).to.include(\"MEDICAID\");",
+                  "    pm.expect(types).to.include(\"COMMERCIAL\");",
+                  "    pm.expect(types).to.include(\"SLIDING_SCALE\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create specialty as ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/specialties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "specialties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"name\": \"Integration Test Specialty\",\n    \"description\": \"Created by the Bruno suite - safe to delete\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// 201 the first time; 409 on a re-run, which also proves the",
+                  "  // duplicate guard. Either is a pass.",
+                  "  pm.test(\"201 created, or 409 if it already exists\", function() {",
+                  "    pm.expect([201, 409]).to.include(status);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Providers",
+      "item": [
+        {
+          "name": "Search all",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "search"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 200) {",
+                  "    // Find one provider WITH capacity and one WITHOUT, so the",
+                  "    // referral tests below never depend on hardcoded ids.",
+                  "    const open = body.content.find(p => p.acceptingNewClients && p.openSlots > 0);",
+                  "    const full = body.content.find(p => !p.acceptingNewClients || p.openSlots === 0);",
+                  "    if (open) pm.environment.set(\"providerWithCapacity\", open.id);",
+                  "    if (full) pm.environment.set(\"providerAtCapacity\", full.id);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"35 active providers in the directory\", function() {",
+                  "    pm.expect(body.totalElements).to.equal(35);",
+                  "  });",
+                  "",
+                  "  pm.test(\"paginated\", function() {",
+                  "    pm.expect(body.content.length).to.be.at.most(20);",
+                  "  });",
+                  "",
+                  "  pm.test(\"every result carries capacity information\", function() {",
+                  "    pm.expect(body.content[0]).to.have.property(\"openSlots\");",
+                  "    pm.expect(body.content[0]).to.have.property(\"acceptingNewClients\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search accepting only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/search?acceptingOnly=true?acceptingOnly=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "search?acceptingOnly=true"
+              ],
+              "query": [
+                {
+                  "key": "acceptingOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"narrower than the unfiltered search\", function() {",
+                  "    pm.expect(body.totalElements).to.be.below(35);",
+                  "  });",
+                  "",
+                  "  pm.test(\"every result is actually accepting\", function() {",
+                  "    body.content.forEach(p => {",
+                  "      pm.expect(p.acceptingNewClients).to.equal(true);",
+                  "      pm.expect(p.openSlots).to.be.above(0);",
+                  "    });",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search multi-filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/search?languageId={{languageSpanish}}&specialtyId={{specialtyPtsd}}&acceptingOnly=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "languageId",
+                  "value": "{{languageSpanish}}"
+                },
+                {
+                  "key": "specialtyId",
+                  "value": "{{specialtyPtsd}}"
+                },
+                {
+                  "key": "acceptingOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  // Spanish-speaking, PTSD focus, accepting clients. The ids come from",
+                  "  // the Catalog requests, so this never depends on seed ordering.",
+                  "  pm.test(\"combining filters narrows further\", function() {",
+                  "    pm.expect(body.totalElements).to.be.at.most(35);",
+                  "  });",
+                  "",
+                  "  pm.test(\"no duplicate rows from the collection joins\", function() {",
+                  "    const ids = body.content.map(p => p.id);",
+                  "    pm.expect(new Set(ids).size).to.equal(ids.length);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provider detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerWithCapacity}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "{{providerWithCapacity}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 200) {",
+                  "    pm.environment.set(\"slotsBefore\", body.openSlots);",
+                  "  }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"returns all four collections\", function() {",
+                  "    pm.expect(body.specialties).to.be.an(\"array\");",
+                  "    pm.expect(body.populations).to.be.an(\"array\");",
+                  "    pm.expect(body.languages).to.be.an(\"array\");",
+                  "    pm.expect(body.insurancePlans).to.be.an(\"array\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"never exposes an entity's internals\", function() {",
+                  "    pm.expect(body).to.not.have.property(\"password\");",
+                  "    pm.expect(body).to.not.have.property(\"organizationId\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provider not found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "999999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"404 Not Found\", function() {",
+                  "    pm.expect(status).to.equal(404);",
+                  "  });",
+                  "",
+                  "  pm.test(\"consistent error shape\", function() {",
+                  "    pm.expect(body).to.have.property(\"timestamp\");",
+                  "    pm.expect(body).to.have.property(\"status\");",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body).to.have.property(\"path\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save to shortlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerWithCapacity}}/save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "{{providerWithCapacity}}",
+                "save"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"note\": \"Saved by the integration suite\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"201 created, or 409 if already saved\", function() {",
+                  "    pm.expect([201, 409]).to.include(status);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My shortlist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/saved",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "saved"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  // There is no user id in the request - it comes from the token -",
+                  "  // so this can only ever return the caller's own list.",
+                  "  pm.test(\"returns a list\", function() {",
+                  "    pm.expect(body).to.be.an(\"array\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Capacity invariant is enforced",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerWithCapacity}}/capacity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "{{providerWithCapacity}}",
+                "capacity"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"openSlots\": 0,\n    \"acceptingNewClients\": true,\n    \"note\": \"This contradiction must be rejected\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// A directory that says someone is available when they are not is",
+                  "  // worse than no directory at all.",
+                  "  pm.test(\"400 Bad Request\", function() {",
+                  "    pm.expect(status).to.equal(400);",
+                  "  });",
+                  "",
+                  "  pm.test(\"explains why\", function() {",
+                  "    pm.expect(body.message).to.contain(\"zero open slots\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Referrals",
+      "item": [
+        {
+          "name": "Submit referral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"providerId\": {{providerWithCapacity}},\n    \"message\": \"Submitted by the integration suite\",\n    \"preferredContact\": \"EMAIL\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 201) {",
+                  "    pm.environment.set(\"referralId\", body.id);",
+                  "  }",
+                  "",
+                  "pm.test(\"201 Created\", function() {",
+                  "    pm.expect(status).to.equal(201);",
+                  "  });",
+                  "",
+                  "  pm.test(\"starts PENDING\", function() {",
+                  "    pm.expect(body.status).to.equal(\"PENDING\");",
+                  "  });",
+                  "",
+                  "  // The audit trail begins at submission, not at resolution.",
+                  "  pm.test(\"creation history row exists\", function() {",
+                  "    pm.expect(body.history).to.have.lengthOf(1);",
+                  "    pm.expect(body.history[0].fromStatus).to.equal(null);",
+                  "    pm.expect(body.history[0].toStatus).to.equal(\"PENDING\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"history row is attributed and timestamped\", function() {",
+                  "    pm.expect(body.history[0].changedBy).to.be.a(\"string\");",
+                  "    pm.expect(body.history[0].createdAt).to.be.a(\"string\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate referral rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"providerId\": {{providerWithCapacity}},\n    \"message\": \"Second attempt - should be refused\",\n    \"preferredContact\": \"EMAIL\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// MySQL cannot express \"unique only when status = PENDING\" - there",
+                  "  // is no partial unique index - so ReferralService enforces it.",
+                  "  pm.test(\"409 Conflict\", function() {",
+                  "    pm.expect(status).to.equal(409);",
+                  "  });",
+                  "",
+                  "  pm.test(\"says why\", function() {",
+                  "    pm.expect(body.message).to.contain(\"pending request\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Client cannot see the queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/queue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "queue"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"403 Forbidden\", function() {",
+                  "    pm.expect(status).to.equal(403);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Navigator queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/queue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "queue"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"everything in it is PENDING\", function() {",
+                  "    body.content.forEach(r => {",
+                  "      pm.expect(r.status).to.equal(\"PENDING\");",
+                  "    });",
+                  "  });",
+                  "",
+                  "  // Oldest first, deliberately: a newest-first queue guarantees the",
+                  "  // longest-waiting request is the one nobody sees.",
+                  "  pm.test(\"ordered oldest first\", function() {",
+                  "    const dates = body.content.map(r => new Date(r.submittedAt).getTime());",
+                  "    const sorted = [...dates].sort((a, b) => a - b);",
+                  "    pm.expect(dates).to.deep.equal(sorted);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Client cannot decide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/{{referralId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "{{referralId}}",
+                "decision"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"status\": \"ACCEPTED\",\n    \"note\": \"A client must not be able to do this\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"403 Forbidden\", function() {",
+                  "    pm.expect(status).to.equal(403);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Accept referral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/{{referralId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "{{referralId}}",
+                "decision"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"status\": \"ACCEPTED\",\n    \"note\": \"Open slot confirmed; intake scheduled\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"resolves to ACCEPTED\", function() {",
+                  "    pm.expect(body.status).to.equal(\"ACCEPTED\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"records who resolved it and when\", function() {",
+                  "    pm.expect(body.resolvedBy).to.be.a(\"string\");",
+                  "    pm.expect(body.resolvedAt).to.be.a(\"string\");",
+                  "  });",
+                  "",
+                  "  // The status change and its audit row are written in one",
+                  "  // transaction, so one cannot exist without the other.",
+                  "  pm.test(\"second history row records the transition\", function() {",
+                  "    pm.expect(body.history).to.have.lengthOf(2);",
+                  "    pm.expect(body.history[1].fromStatus).to.equal(\"PENDING\");",
+                  "    pm.expect(body.history[1].toStatus).to.equal(\"ACCEPTED\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Capacity was consumed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/providers/{{providerWithCapacity}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "{{providerWithCapacity}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// Accepting a referral must actually move the provider's capacity,",
+                  "  // not merely change a status somewhere.",
+                  "  pm.test(\"open slots dropped by exactly one\", function() {",
+                  "    const before = Number(pm.environment.get(\"slotsBefore\"));",
+                  "    pm.expect(body.openSlots).to.equal(before - 1);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Already-resolved referral rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/{{referralId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "{{referralId}}",
+                "decision"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"status\": \"DECLINED\",\n    \"note\": \"This one is already closed\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"400 Bad Request\", function() {",
+                  "    pm.expect(status).to.equal(400);",
+                  "  });",
+                  "",
+                  "  pm.test(\"says it is already resolved\", function() {",
+                  "    pm.expect(body.message).to.contain(\"already\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit to a full provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"providerId\": {{providerAtCapacity}},\n    \"message\": \"Asking about availability\",\n    \"preferredContact\": \"EMAIL\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "if (status === 201) {",
+                  "    pm.environment.set(\"fullReferralId\", body.id);",
+                  "  }",
+                  "",
+                  "// Submitting is always allowed. Capacity is checked at REVIEW time,",
+                  "  // not submission time - the situation can change in between.",
+                  "  pm.test(\"201 Created even though the provider is full\", function() {",
+                  "    pm.expect(status).to.equal(201);",
+                  "  });",
+                  "",
+                  "  pm.test(\"starts PENDING\", function() {",
+                  "    pm.expect(body.status).to.equal(\"PENDING\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Accept becomes waitlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/{{fullReferralId}}/decision",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "{{fullReferralId}}",
+                "decision"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "  {\n    \"status\": \"ACCEPTED\",\n    \"note\": \"Trying to accept a provider with no slots\"\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// THE CENTRAL TEST OF THIS SUITE.",
+                  "  //",
+                  "  // ACCEPTED was requested. The provider has no capacity. Overbooking",
+                  "  // would be wrong and failing outright would lose the request, so the",
+                  "  // referral resolves to WAITLISTED - and the response reports what",
+                  "  // ACTUALLY happened rather than what was asked for.",
+                  "  pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"resolved to WAITLISTED, not ACCEPTED\", function() {",
+                  "    pm.expect(body.status).to.equal(\"WAITLISTED\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"the note explains the substitution\", function() {",
+                  "    pm.expect(body.history[1].note).to.contain(\"No open slots\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"history records WAITLISTED, matching the real outcome\", function() {",
+                  "    pm.expect(body.history[1].toStatus).to.equal(\"WAITLISTED\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My referrals only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/referrals/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "referrals",
+                "mine"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  // There is no user id in the request. It comes from the token, so",
+                  "  // there is no parameter anyone could change to read another",
+                  "  // person's referrals.",
+                  "  pm.test(\"newest first\", function() {",
+                  "    const dates = body.content.map(r => new Date(r.submittedAt).getTime());",
+                  "    const sorted = [...dates].sort((a, b) => b - a);",
+                  "    pm.expect(dates).to.deep.equal(sorted);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Reports",
+      "item": [
+        {
+          "name": "Access gap",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/access-gap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "access-gap"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"one row per plan type\", function() {",
+                  "    pm.expect(body).to.be.an(\"array\");",
+                  "    pm.expect(body[0]).to.have.property(\"planType\");",
+                  "    pm.expect(body[0]).to.have.property(\"acceptingProviders\");",
+                  "  });",
+                  "",
+                  "  // The report exists to surface this gap, so it should actually",
+                  "  // contain a Medicaid row to compare against.",
+                  "  pm.test(\"includes Medicaid\", function() {",
+                  "    const types = body.map(r => r.planType);",
+                  "    pm.expect(types).to.include(\"MEDICAID\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"ordered by provider count, descending\", function() {",
+                  "    const counts = body.map(r => r.acceptingProviders);",
+                  "    const sorted = [...counts].sort((a, b) => b - a);",
+                  "    pm.expect(counts).to.deep.equal(sorted);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "County capacity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/county-capacity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "county-capacity"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  // Joins provider -> organization -> county, which is why county",
+                  "  // lives on the organization rather than on every provider row.",
+                  "  pm.test(\"rows carry county, region and capacity\", function() {",
+                  "    pm.expect(body[0]).to.have.property(\"county\");",
+                  "    pm.expect(body[0]).to.have.property(\"region\");",
+                  "    pm.expect(body[0]).to.have.property(\"openSlots\");",
+                  "    pm.expect(body[0]).to.have.property(\"waitlisted\");",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Referral summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/referrals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "referrals"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"breaks the total down by status\", function() {",
+                  "    pm.expect(body).to.have.property(\"total\");",
+                  "    pm.expect(body).to.have.property(\"pending\");",
+                  "    pm.expect(body).to.have.property(\"accepted\");",
+                  "    pm.expect(body).to.have.property(\"waitlisted\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"the parts sum to no more than the total\", function() {",
+                  "    const parts = body.pending + body.accepted + body.waitlisted",
+                  "                + body.declined + body.withdrawn;",
+                  "    pm.expect(parts).to.be.at.most(body.total);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Client cannot read reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/access-gap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "access-gap"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"403 Forbidden\", function() {",
+                  "    pm.expect(status).to.equal(403);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Security",
+      "item": [
+        {
+          "name": "No token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/counties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "counties"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// 401 means \"you are not logged in\", 403 means \"you are, but you",
+                  "  // may not\". Spring's default for a stateless config returns 403 for",
+                  "  // both; JwtAuthEntryPoint exists to make this distinction correct.",
+                  "  pm.test(\"401 Unauthorized, not 403\", function() {",
+                  "    pm.expect(status).to.equal(401);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer this.is.not.a.real.token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "counties"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"401 Unauthorized\", function() {",
+                  "    pm.expect(status).to.equal(401);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tampered token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}x"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/counties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "counties"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// One extra character invalidates the signature. A JWT payload is",
+                  "  // only base64-encoded, not encrypted - the signature is what makes",
+                  "  // it tamper-evident.",
+                  "  pm.test(\"401 Unauthorized\", function() {",
+                  "    pm.expect(status).to.equal(401);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Swagger is public",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v3/api-docs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v3",
+                "api-docs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"200 OK without a token\", function() {",
+                  "    pm.expect(status).to.equal(200);",
+                  "  });",
+                  "",
+                  "  pm.test(\"documents every controller\", function() {",
+                  "    const paths = Object.keys(body.paths);",
+                  "    pm.expect(paths.some(p => p.includes(\"/api/auth\"))).to.equal(true);",
+                  "    pm.expect(paths.some(p => p.includes(\"/api/providers\"))).to.equal(true);",
+                  "    pm.expect(paths.some(p => p.includes(\"/api/referrals\"))).to.equal(true);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown endpoint is 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clientToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/does-not-exist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "does-not-exist"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "// Spring Boot 3.2+ throws NoResourceFoundException here. Without an",
+                  "  // explicit handler the catch-all would report 500, turning every",
+                  "  // 404 in the application into a server error.",
+                  "  pm.test(\"404 Not Found, not 500\", function() {",
+                  "    pm.expect(status).to.equal(404);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong HTTP method is 405",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const status = pm.response.code;",
+                  "let body = {};",
+                  "try { body = pm.response.json(); } catch (e) { /* no JSON body */ }",
+                  "",
+                  "pm.test(\"405 Method Not Allowed, not 500\", function() {",
+                  "    pm.expect(status).to.equal(405);",
+                  "  });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
