@@ -1,0 +1,54 @@
+---
+title: Florida Mental Health App — System Architecture
+---
+flowchart TB
+
+  subgraph BROWSER["&nbsp;BROWSER &nbsp;·&nbsp; Vite dev server&nbsp;"]
+    direction LR
+    react["<b>React 18</b><br/><small>21 components<br/>11 routes</small>"]
+    ctx["<b>Context</b><br/><small>AuthContext<br/>ThemeContext</small>"]
+    axios["<b>axios instance</b><br/><small>attaches Bearer token<br/>normalizes every error</small>"]
+    ctx --- react --> axios
+  end
+
+  subgraph API["&nbsp;SPRING BOOT 3.5.16 &nbsp;·&nbsp; localhost:8080&nbsp;"]
+    direction TB
+    chain["<b>Security filter chain</b> &nbsp;·&nbsp; stateless<br/><small>CorsFilter &nbsp;→&nbsp; JwtAuthenticationFilter &nbsp;→&nbsp; AuthorizationFilter<br/>validate the token, populate SecurityContext, apply role rules</small>"]
+    ctrl["<b>Controllers</b> &nbsp;6<br/><small>bind · validate · delegate &nbsp;—&nbsp; no business logic</small>"]
+    svc["<b>Services</b> &nbsp;6<br/><small>business rules &nbsp;·&nbsp; @Transactional boundary</small>"]
+    repo["<b>Repositories</b> &nbsp;13<br/><small>Spring Data JPA</small>"]
+    gex["<b>GlobalExceptionHandler</b><br/><small>one error shape<br/>for every failure</small>"]
+
+    chain ==> ctrl
+    ctrl ==>|"DTOs only"| svc
+    svc ==>|"entities never leave"| repo
+    ctrl -.->|throws| gex
+    svc  -.->|throws| gex
+  end
+
+  subgraph DATA["&nbsp;PERSISTENCE&nbsp;"]
+    direction LR
+    hib["<b>Hibernate 6.6</b><br/><small>open-in-view disabled</small>"]
+    db[("<b>MySQL 8</b><br/>fl_mental_health_db<br/><small>18 tables</small>")]
+    hib ==> db
+  end
+
+  axios ==>|"JSON over HTTP &nbsp;·&nbsp; Authorization: Bearer"| chain
+  repo ==> hib
+  gex -.->|"consistent JSON + status"| axios
+
+  classDef browser fill:#E6EFEE,stroke:#2D6A6A,stroke-width:1.5px,color:#1B2A33
+  classDef layer   fill:#FFFFFF,stroke:#51616B,stroke-width:1.5px,color:#1B2A33
+  classDef sec     fill:#F6EEDF,stroke:#9A6B1F,stroke-width:1.5px,color:#1B2A33
+  classDef data    fill:#E7F2EC,stroke:#2F7D5B,stroke-width:1.5px,color:#1B2A33
+  classDef err     fill:#F8E9E7,stroke:#A23B2E,stroke-width:1.5px,color:#1B2A33
+
+  class react,ctx,axios browser
+  class ctrl,svc,repo layer
+  class chain sec
+  class hib,db data
+  class gex err
+
+  style BROWSER fill:#FCFBF9,stroke:#E0DCD3,stroke-width:1px,color:#51616B
+  style API     fill:#FCFBF9,stroke:#E0DCD3,stroke-width:1px,color:#51616B
+  style DATA    fill:#FCFBF9,stroke:#E0DCD3,stroke-width:1px,color:#51616B

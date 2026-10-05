@@ -1,0 +1,104 @@
+---
+title: Florida Mental Health App — React Component Structure
+---
+flowchart TB
+
+  main["main.jsx<br/><small>ReactDOM.createRoot</small>"]
+  app["<b>App.jsx</b><br/><small>ThemeProvider › AuthProvider › BrowserRouter › Routes</small>"]
+
+  subgraph CTX["&nbsp;Context — shared state&nbsp;"]
+    direction LR
+    auth["<b>AuthContext</b><br/><small>useAuth()<br/>user · isAdmin · login · logout</small>"]
+    theme["<b>ThemeContext</b><br/><small>useTheme()<br/>light / dark</small>"]
+  end
+
+  guard["<b>ProtectedRoute</b><br/><small>redirects when signed out<br/>requireAdmin for staff routes</small>"]
+  layout["<b>Layout</b><br/><small>masthead + nav + Outlet</small>"]
+
+  subgraph PUBLIC["&nbsp;Public routes — no token needed&nbsp;"]
+    pAuth["AuthPage<br/><small>sign in / register</small>"]
+    pRes["StatewideResourcesPage<br/><small>real helplines</small>"]
+    p404["NotFoundPage"]
+  end
+
+  subgraph CLIENT["&nbsp;Client routes&nbsp;"]
+    pSearch["<b>SearchPage</b><br/><small>useReducer — filter state</small>"]
+    pDetail["ProviderDetailPage"]
+    pSaved["SavedPage"]
+    pRef["MyReferralsPage"]
+    pProf["ProfilePage"]
+  end
+
+  subgraph ADMIN["&nbsp;Navigator routes — ROLE_ADMIN&nbsp;"]
+    pQueue["<b>AdminQueuePage</b><br/><small>the decision flow</small>"]
+    pDir["AdminProvidersPage"]
+    pRep["ReportsPage"]
+  end
+
+  subgraph FEAT["&nbsp;Feature components&nbsp;"]
+    direction LR
+    crisis["CrisisBanner"]
+    filters["SearchFilters"]
+    card["ProviderCard"]
+    form["ReferralForm"]
+    timeline["StatusTimeline"]
+    modal["Modal"]
+    table["Table"]
+  end
+
+  subgraph BASE["&nbsp;Shared foundation — imported by nearly every page&nbsp;"]
+    direction LR
+    ui["<b>ui.jsx</b><br/><small>Button · Field · Input<br/>Select · Tag · Notice · Empty</small>"]
+    hooks["<b>hooks.js</b><br/><small>useFetch · useDebounce</small>"]
+    api["<b>api.js</b><br/><small>axios + interceptors<br/>one function per endpoint</small>"]
+    utils["<b>utils.js</b><br/><small>enum → plain English<br/>availability · dates</small>"]
+  end
+
+  res["resources.js<br/><small>real crisis data<br/>the one honest dataset</small>"]
+
+  main ==> app
+  app ==> CTX
+  app ==> guard ==> layout
+  app ==> PUBLIC
+  layout ==> CLIENT
+  layout ==> ADMIN
+
+  layout --> crisis
+  pAuth --> crisis
+  pRes  --> crisis
+  p404  --> crisis
+  crisis --> res
+  pRes --> res
+
+  pSearch --> filters
+  pSearch --> card
+  pDetail --> form
+  pRef --> timeline
+  pQueue --> modal
+  pQueue --> timeline
+  pDir --> modal
+  pDir --> table
+  pRep --> table
+
+  auth --> api
+
+  classDef root   fill:#2D6A6A,stroke:#1F4D4D,stroke-width:1.5px,color:#FFFFFF
+  classDef ctxc   fill:#E6EFEE,stroke:#2D6A6A,stroke-width:1.5px,color:#1B2A33
+  classDef route  fill:#F6EEDF,stroke:#9A6B1F,stroke-width:1.5px,color:#1B2A33
+  classDef page   fill:#FFFFFF,stroke:#51616B,stroke-width:1.5px,color:#1B2A33
+  classDef feat   fill:#E7F2EC,stroke:#2F7D5B,stroke-width:1.5px,color:#1B2A33
+  classDef base   fill:#F2F0EB,stroke:#7C8A92,stroke-width:1.5px,color:#1B2A33
+
+  class main,app root
+  class auth,theme ctxc
+  class guard,layout route
+  class pAuth,pRes,p404,pSearch,pDetail,pSaved,pRef,pProf,pQueue,pDir,pRep page
+  class crisis,filters,card,form,timeline,modal,table feat
+  class ui,hooks,api,utils,res base
+
+  style CTX    fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
+  style PUBLIC fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
+  style CLIENT fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
+  style ADMIN  fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
+  style FEAT   fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
+  style BASE   fill:#FCFBF9,stroke:#E0DCD3,color:#51616B
