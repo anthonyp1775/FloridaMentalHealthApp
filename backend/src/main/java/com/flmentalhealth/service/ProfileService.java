@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class ProfileService {
+    private static final String NOT_FOUND = " not found";
 
     private final ClientProfileRepository profileRepository;
     private final UserRepository userRepository;
@@ -71,19 +72,19 @@ public class ProfileService {
                 request.preferredCountyId() == null ? null
                         : countyRepository.findById(request.preferredCountyId())
                         .orElseThrow(() -> new ResourceNotFoundException(
-                                "County " + request.preferredCountyId() + " not found")));
+                                "County " + request.preferredCountyId() + NOT_FOUND)));
 
         profile.setPreferredLanguage(
                 request.preferredLanguageId() == null ? null
                         : languageRepository.findById(request.preferredLanguageId())
                         .orElseThrow(() -> new ResourceNotFoundException(
-                                "Language " + request.preferredLanguageId() + " not found")));
+                                "Language " + request.preferredLanguageId() + NOT_FOUND)));
 
         profile.setInsurancePlan(
                 request.insurancePlanId() == null ? null
                         : insurancePlanRepository.findById(request.insurancePlanId())
                         .orElseThrow(() -> new ResourceNotFoundException(
-                                "Insurance plan " + request.insurancePlanId() + " not found")));
+                                "Insurance plan " + request.insurancePlanId() + NOT_FOUND)));
 
         return toResponse(profileRepository.save(profile));
     }
@@ -93,7 +94,7 @@ public class ProfileService {
     private User findUser(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "User " + id + " not found"));
+                        "User " + id + NOT_FOUND));
     }
 
     private ClientProfile.ContactPreference parseContact(String value) {

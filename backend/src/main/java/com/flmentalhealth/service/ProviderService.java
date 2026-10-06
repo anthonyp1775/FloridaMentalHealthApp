@@ -24,6 +24,7 @@ import java.util.Set;
 @Service
 @Transactional(readOnly = true)
 public class ProviderService {
+    private static final String NOT_FOUND = " not found";
 
     private final ProviderRepository providerRepository;
     private final OrganizationRepository organizationRepository;
@@ -103,7 +104,7 @@ public class ProviderService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "User " + userId + " not found"));
+                        "User " + userId + NOT_FOUND));
 
         Provider provider = findActive(providerId);
 
@@ -207,7 +208,7 @@ public class ProviderService {
 
         Organization org = organizationRepository.findById(request.organizationId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Organization " + request.organizationId() + " not found"));
+                        "Organization " + request.organizationId() + NOT_FOUND));
 
         provider.setFirstName(request.firstName());
         provider.setLastName(request.lastName());
@@ -257,7 +258,7 @@ public class ProviderService {
         Set<T> resolved = new HashSet<>();
         for (Long id : ids) {
             resolved.add(finder.apply(id).orElseThrow(
-                    () -> new ResourceNotFoundException(label + " " + id + " not found")));
+                    () -> new ResourceNotFoundException(label + " " + id + NOT_FOUND)));
         }
         return resolved;
     }
@@ -276,7 +277,7 @@ public class ProviderService {
     private Provider findActive(Long id) {
         Provider provider = findAny(id);
         if (!provider.isActive()) {
-            throw new ResourceNotFoundException("Provider " + id + " not found");
+            throw new ResourceNotFoundException("Provider " + id + NOT_FOUND);
         }
         return provider;
     }
@@ -285,7 +286,7 @@ public class ProviderService {
     private Provider findAny(Long id) {
         return providerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Provider " + id + " not found"));
+                        "Provider " + id + NOT_FOUND));
     }
 
     // ---------- mapping ----------

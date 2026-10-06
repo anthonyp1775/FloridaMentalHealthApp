@@ -2,6 +2,7 @@ package com.flmentalhealth.exception;
 
 /** Custom exceptions grouped in one file instead of four. */
 public class ApiExceptions {
+    private ApiExceptions() { }   // a namespace, never instantiated
 
     /** -> 404 */
     public static class ResourceNotFoundException extends RuntimeException {

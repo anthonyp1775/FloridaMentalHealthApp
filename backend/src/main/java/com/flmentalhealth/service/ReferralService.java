@@ -37,6 +37,7 @@ public class ReferralService {
     /** The only statuses a navigator may resolve a referral to. */
     private static final Set<Status> DECIDABLE =
             Set.of(Status.ACCEPTED, Status.WAITLISTED, Status.DECLINED);
+    private static final String NOT_FOUND = " not found";
 
     private final ReferralRequestRepository referralRepository;
     private final ProviderRepository providerRepository;
@@ -70,11 +71,11 @@ public class ReferralService {
 
         Provider provider = providerRepository.findById(request.providerId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Provider " + request.providerId() + " not found"));
+                        "Provider " + request.providerId() + NOT_FOUND));
 
         if (!provider.isActive()) {
             throw new ResourceNotFoundException(
-                    "Provider " + request.providerId() + " not found");
+                    "Provider " + request.providerId() + NOT_FOUND);
         }
 
         List<ReferralRequest> open = referralRepository
@@ -259,13 +260,13 @@ public class ReferralService {
     private ReferralRequest findReferral(Long id) {
         return referralRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Referral " + id + " not found"));
+                        "Referral " + id + NOT_FOUND));
     }
 
     private User findUser(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "User " + id + " not found"));
+                        "User " + id + NOT_FOUND));
     }
 
     private Status parseStatus(String value) {

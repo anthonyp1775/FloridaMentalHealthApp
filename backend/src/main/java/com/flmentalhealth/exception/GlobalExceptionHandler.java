@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,10 +21,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Turns every exception into one consistent JSON shape.
@@ -90,9 +91,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ReportDtos.ErrorResponse> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
 
-        String required = ex.getRequiredType() == null
+        Class<?> requiredType = ex.getRequiredType();
+        String required = requiredType == null
                 ? "the expected type"
-                : ex.getRequiredType().getSimpleName();
+                : requiredType.getSimpleName();
 
         return build(HttpStatus.BAD_REQUEST,
                 "'" + ex.getValue() + "' is not a valid value for '"
@@ -178,9 +180,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ReportDtos.ErrorResponse> handleMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
 
-        String supported = ex.getSupportedHttpMethods() == null
+        Set<HttpMethod> methods = ex.getSupportedHttpMethods();
+        String supported = methods == null
                 ? "another method"
-                : ex.getSupportedHttpMethods().toString();
+                : methods.toString();
 
         return build(HttpStatus.METHOD_NOT_ALLOWED,
                 request.getMethod() + " is not supported on "

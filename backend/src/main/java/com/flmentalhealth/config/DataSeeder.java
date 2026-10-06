@@ -35,9 +35,9 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void ensureRole(String name) {
-        roleRepository.findByName(name).orElseGet(() -> {
+        if (roleRepository.findByName(name).isEmpty()) {
             log.info("Creating missing role {}", name);
-            return roleRepository.save(new Role(name));
-        });
+            roleRepository.save(new Role(name));
+        }
     }
 }
