@@ -1,6 +1,10 @@
 # Testing — Florida Mental Health App
 
-**135 tests, 9 classes.** Run them:
+**186 test methods across 13 classes, running 258 cases.** The two
+numbers differ because three classes are parameterized: the entity
+identity contract runs 6 methods across 13 entities (66 cases),
+`ProviderTest` expands 18 to 26, and `ReferralRequestTest` 15 to 19.
+Surefire reports the executed count. Run them:
 
 ```bash
 cd backend
