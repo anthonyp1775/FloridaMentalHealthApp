@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class ProfileService {
+
     private static final String NOT_FOUND = " not found";
 
     private final ClientProfileRepository profileRepository;
@@ -101,7 +102,7 @@ public class ProfileService {
         if (value == null) return ClientProfile.ContactPreference.EMAIL;
         try {
             return ClientProfile.ContactPreference.valueOf(value);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             throw new IllegalArgumentException(
                     "'" + value + "' is not a valid contact preference. Valid values: "
                             + java.util.Arrays.toString(

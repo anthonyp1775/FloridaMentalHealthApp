@@ -225,8 +225,9 @@ class ReferralRequestTest {
             ReferralRequest a = TestFixtures.pendingReferral(9L, client, provider);
             ReferralRequest b = TestFixtures.pendingReferral(9L, client, provider);
 
-            assertThat(a).isEqualTo(b);
-            assertThat(a).hasSameHashCodeAs(b);
+            assertThat(a)
+                    .isEqualTo(b)
+                    .hasSameHashCodeAs(b);
         }
 
         @Test

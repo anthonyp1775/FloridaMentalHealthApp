@@ -274,7 +274,7 @@ class ReferralControllerTest {
     @Test
     @DisplayName("a client's request reaches the service with isAdmin=false")
     void getById_clientIsNotAdmin() throws Exception {
-        when(referralService.getById(eq(55L), eq(100L), eq(false)))
+        when(referralService.getById(55L, 100L, false))
                 .thenReturn(response("PENDING", null, List.of(creationRow())));
 
         asClient.perform(get("/api/referrals/55"))
@@ -286,7 +286,7 @@ class ReferralControllerTest {
     @Test
     @DisplayName("a navigator's request reaches the service with isAdmin=true")
     void getById_navigatorIsAdmin() throws Exception {
-        when(referralService.getById(eq(55L), eq(200L), eq(true)))
+        when(referralService.getById(55L, 200L, true))
                 .thenReturn(response("PENDING", null, List.of(creationRow())));
 
         asNavigator.perform(get("/api/referrals/55"))

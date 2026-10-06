@@ -95,7 +95,7 @@ public class AuthService {
             UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
             return buildResponse(principal);
 
-        } catch (org.springframework.security.core.AuthenticationException e) {
+        } catch (org.springframework.security.core.AuthenticationException _) {
             /*
              * One message for every failure mode. Distinguishing "no
              * such account" from "wrong password" tells an attacker

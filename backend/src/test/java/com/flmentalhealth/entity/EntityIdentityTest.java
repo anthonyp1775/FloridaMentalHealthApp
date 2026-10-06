@@ -163,8 +163,9 @@ class EntityIdentityTest {
     void sameIdMeansSameEntity(String name, Object saved,
                                Object sameIdDifferentData,
                                Object unsavedA, Object unsavedB) {
-        assertThat(saved).isEqualTo(sameIdDifferentData);
-        assertThat(saved).hasSameHashCodeAs(sameIdDifferentData);
+        assertThat(saved)
+                .isEqualTo(sameIdDifferentData)
+                .hasSameHashCodeAs(sameIdDifferentData);
     }
 
     /**
@@ -193,9 +194,10 @@ class EntityIdentityTest {
     void rejectsNullAndOtherTypes(String name, Object saved,
                                   Object sameIdDifferentData,
                                   Object unsavedA, Object unsavedB) {
-        assertThat(saved).isNotEqualTo(null);
-        assertThat(saved).isNotEqualTo("a string");
-        assertThat(saved).isNotEqualTo(42);
+        assertThat(saved)
+                .isNotNull()
+                .isNotEqualTo("a string")
+                .isNotEqualTo(42);
     }
 
     /**

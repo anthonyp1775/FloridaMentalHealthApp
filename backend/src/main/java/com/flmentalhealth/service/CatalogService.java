@@ -187,7 +187,7 @@ public class CatalogService {
     private Organization.OrgType parseOrgType(String value) {
         try {
             return Organization.OrgType.valueOf(value);
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException _) {
             throw new IllegalArgumentException(
                     "'" + value + "' is not a valid organization type. Valid values: "
                             + java.util.Arrays.toString(Organization.OrgType.values()));

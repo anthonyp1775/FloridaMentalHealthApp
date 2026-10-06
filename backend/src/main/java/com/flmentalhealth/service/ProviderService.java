@@ -24,6 +24,7 @@ import java.util.Set;
 @Service
 @Transactional(readOnly = true)
 public class ProviderService {
+
     private static final String NOT_FOUND = " not found";
 
     private final ProviderRepository providerRepository;
@@ -266,7 +267,7 @@ public class ProviderService {
     private Provider.Credential parseCredential(String value) {
         try {
             return Provider.Credential.valueOf(value);
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException _) {
             throw new IllegalArgumentException(
                     "'" + value + "' is not a valid credential. Valid values: "
                             + java.util.Arrays.toString(Provider.Credential.values()));

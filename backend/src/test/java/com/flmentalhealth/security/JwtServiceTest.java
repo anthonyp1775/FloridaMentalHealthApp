@@ -132,9 +132,10 @@ class JwtServiceTest {
             Date expiry = jwtService.extractExpiration(
                     jwtService.generateToken(client));
 
-            assertThat(expiry).isAfter(new Date());
-            assertThat(expiry).isBefore(new Date(System.currentTimeMillis()
-                    + ONE_HOUR + 10_000L));
+            assertThat(expiry)
+                    .isAfter(new Date())
+                    .isBefore(new Date(System.currentTimeMillis()
+                            + ONE_HOUR + 10_000L));
         }
 
         /**

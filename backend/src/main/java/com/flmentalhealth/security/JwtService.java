@@ -124,7 +124,7 @@ public class JwtService {
         try {
             final String email = extractEmail(token);
             return email.equals(user.getUsername()) && !isExpired(token);
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return false;
         }
     }
@@ -132,7 +132,7 @@ public class JwtService {
     private boolean isExpired(String token) {
         try {
             return extractExpiration(token).before(new Date());
-        } catch (ExpiredJwtException e) {
+        } catch (ExpiredJwtException _) {
             return true;
         }
     }

@@ -93,8 +93,8 @@ class ProviderServiceTest {
         @DisplayName("passes every filter through and maps to the summary shape")
         void search_mapsSummary() {
             Page<Provider> page = new PageImpl<>(List.of(provider), pageable, 1);
-            when(providerRepository.search(eq(13L), eq(2L), eq(3L), eq(4L), eq(5L),
-                    eq(true), eq(true), eq(pageable))).thenReturn(page);
+            when(providerRepository.search(13L, 2L, 3L, 4L, 5L,
+                    true, true, pageable)).thenReturn(page);
 
             Page<ProviderDtos.Summary> result = service.search(
                     new ProviderDtos.SearchCriteria(13L, 2L, 3L, 4L, 5L, true, true),

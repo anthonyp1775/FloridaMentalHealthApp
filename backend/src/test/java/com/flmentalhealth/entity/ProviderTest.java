@@ -208,8 +208,9 @@ class ProviderTest {
             Provider b = TestFixtures.provider(7L);
             b.setFirstName("Someone");            // different data, same row
 
-            assertThat(a).isEqualTo(b);
-            assertThat(a).hasSameHashCodeAs(b);
+            assertThat(a)
+                    .isEqualTo(b)
+                    .hasSameHashCodeAs(b);
         }
 
         /**
@@ -240,8 +241,9 @@ class ProviderTest {
         void toString_doesNotTouchLazyAssociations() {
             String text = TestFixtures.provider(1L).toString();
 
-            assertThat(text).contains("Priya Raman", "PSYCHIATRIST");
-            assertThat(text).doesNotContain("Example Behavioral Health Center");
+            assertThat(text)
+                    .contains("Priya Raman", "PSYCHIATRIST")
+                    .doesNotContain("Example Behavioral Health Center");
         }
     }
 }

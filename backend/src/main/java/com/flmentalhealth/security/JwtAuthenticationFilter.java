@@ -79,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             /*
              * A malformed, expired or forged token is an ordinary thing
              * to receive on a public endpoint, not an error worth

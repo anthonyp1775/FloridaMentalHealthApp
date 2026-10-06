@@ -37,6 +37,7 @@ public class ReferralService {
     /** The only statuses a navigator may resolve a referral to. */
     private static final Set<Status> DECIDABLE =
             Set.of(Status.ACCEPTED, Status.WAITLISTED, Status.DECLINED);
+
     private static final String NOT_FOUND = " not found";
 
     private final ReferralRequestRepository referralRepository;
@@ -272,7 +273,7 @@ public class ReferralService {
     private Status parseStatus(String value) {
         try {
             return Status.valueOf(value);
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException _) {
             throw new IllegalArgumentException(
                     "'" + value + "' is not a valid status. Valid values: "
                             + java.util.Arrays.toString(Status.values()));
@@ -282,7 +283,7 @@ public class ReferralService {
     private ReferralRequest.ContactPreference parseContact(String value) {
         try {
             return ReferralRequest.ContactPreference.valueOf(value);
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (IllegalArgumentException | NullPointerException _) {
             throw new IllegalArgumentException(
                     "'" + value + "' is not a valid contact preference. Valid values: "
                             + java.util.Arrays.toString(
