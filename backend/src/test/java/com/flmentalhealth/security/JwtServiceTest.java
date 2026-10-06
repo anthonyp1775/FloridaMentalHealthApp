@@ -49,10 +49,25 @@ class JwtServiceTest {
     }
 
     /** Flips one character so the token is guaranteed to differ. */
+    /*
+     * Changes the FIRST character of the signature, not the last.
+     *
+     * The last character is a bad target and this test was flaky
+     * because of it: HMAC-SHA256 is 32 bytes, base64url encodes that
+     * in 43 characters = 258 bits, so the final character's low two
+     * bits are padding that decoding throws away. 'A', 'B', 'C' and
+     * 'D' all decode to the same final byte, so flipping between them
+     * produced a token that was not tampered with at all and still
+     * verified - a false failure roughly one run in sixteen.
+     *
+     * Every other position carries six significant bits, so a change
+     * there always alters the signature.
+     */
     private static String tamperWith(String token) {
         char[] chars = token.toCharArray();
-        int last = chars.length - 1;
-        chars[last] = (chars[last] == 'A') ? 'B' : 'A';
+        int firstSignatureChar = token.lastIndexOf('.') + 1;
+        chars[firstSignatureChar] =
+                (chars[firstSignatureChar] == 'A') ? 'B' : 'A';
         return new String(chars);
     }
 

@@ -233,8 +233,8 @@ class ProfileServiceTest {
         when(profileRepository.findById(100L)).thenReturn(Optional.empty());
         when(countyRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                service.update(100L, request(999L, null, null, "EMAIL")))
+        var req = request(999L, null, null, "EMAIL");
+        assertThatThrownBy(() -> service.update(100L, req))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("County 999");
 
@@ -248,8 +248,8 @@ class ProfileServiceTest {
         when(profileRepository.findById(100L)).thenReturn(Optional.empty());
         when(insurancePlanRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                service.update(100L, request(null, null, 999L, "EMAIL")))
+        var req = request(null, null, 999L, "EMAIL");
+        assertThatThrownBy(() -> service.update(100L, req))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Insurance plan 999");
     }
@@ -274,8 +274,8 @@ class ProfileServiceTest {
         when(userRepository.findById(100L)).thenReturn(Optional.of(client));
         when(profileRepository.findById(100L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() ->
-                service.update(100L, request(null, null, null, "SMOKE_SIGNAL")))
+        var req = request(null, null, null, "SMOKE_SIGNAL");
+        assertThatThrownBy(() -> service.update(100L, req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("EMAIL")
                 .hasMessageContaining("PHONE")

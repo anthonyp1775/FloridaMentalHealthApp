@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 
 /**
@@ -80,7 +81,7 @@ public class ReferralStatusHistory {
      * object does, which is what any caller reasonably expects.
      */
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.systemDefault());
 
     public ReferralStatusHistory(ReferralRequest.Status fromStatus,
                                  ReferralRequest.Status toStatus,
@@ -90,7 +91,7 @@ public class ReferralStatusHistory {
         this.toStatus = toStatus;
         this.note = note;
         this.changedBy = changedBy;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     /** The creation row for a newly submitted request. */

@@ -159,8 +159,8 @@ class ReferralServiceTest {
             when(referralRepository.findByUserIdAndProviderIdAndStatus(
                     100L, 1L, Status.PENDING)).thenReturn(List.of(existing));
 
-            assertThatThrownBy(() -> service.submit(100L,
-                    new ReferralDtos.Request(1L, "again", "EMAIL")))
+            var req = new ReferralDtos.Request(1L, "again", "EMAIL");
+            assertThatThrownBy(() -> service.submit(100L, req))
                     .isInstanceOf(DuplicateReferralException.class)
                     .hasMessageContaining("already have a pending request");
 
@@ -176,8 +176,8 @@ class ReferralServiceTest {
             when(userRepository.findById(100L)).thenReturn(Optional.of(client));
             when(providerRepository.findById(2L)).thenReturn(Optional.of(retired));
 
-            assertThatThrownBy(() -> service.submit(100L,
-                    new ReferralDtos.Request(2L, null, "EMAIL")))
+            var req = new ReferralDtos.Request(2L, null, "EMAIL");
+            assertThatThrownBy(() -> service.submit(100L, req))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("not found");
         }
@@ -188,8 +188,8 @@ class ReferralServiceTest {
             when(userRepository.findById(100L)).thenReturn(Optional.of(client));
             when(providerRepository.findById(999L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.submit(100L,
-                    new ReferralDtos.Request(999L, null, "EMAIL")))
+            var req = new ReferralDtos.Request(999L, null, "EMAIL");
+            assertThatThrownBy(() -> service.submit(100L, req))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("999");
         }
@@ -202,8 +202,8 @@ class ReferralServiceTest {
             when(referralRepository.findByUserIdAndProviderIdAndStatus(
                     anyLong(), anyLong(), any())).thenReturn(List.of());
 
-            assertThatThrownBy(() -> service.submit(100L,
-                    new ReferralDtos.Request(1L, null, "CARRIER_PIGEON")))
+            var req = new ReferralDtos.Request(1L, null, "CARRIER_PIGEON");
+            assertThatThrownBy(() -> service.submit(100L, req))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("EMAIL")
                     .hasMessageContaining("PHONE")
@@ -378,8 +378,8 @@ class ReferralServiceTest {
 
             when(referralRepository.findById(16L)).thenReturn(Optional.of(done));
 
-            assertThatThrownBy(() -> service.decide(16L,
-                    new ReferralDtos.DecisionRequest("DECLINED", null), 200L))
+            var req = new ReferralDtos.DecisionRequest("DECLINED", null);
+            assertThatThrownBy(() -> service.decide(16L, req, 200L))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("already ACCEPTED");
         }
@@ -392,8 +392,8 @@ class ReferralServiceTest {
 
             when(referralRepository.findById(17L)).thenReturn(Optional.of(referral));
 
-            assertThatThrownBy(() -> service.decide(17L,
-                    new ReferralDtos.DecisionRequest("PENDING", null), 200L))
+            var req = new ReferralDtos.DecisionRequest("PENDING", null);
+            assertThatThrownBy(() -> service.decide(17L, req, 200L))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("ACCEPTED, WAITLISTED or DECLINED");
         }
@@ -406,8 +406,8 @@ class ReferralServiceTest {
 
             when(referralRepository.findById(18L)).thenReturn(Optional.of(referral));
 
-            assertThatThrownBy(() -> service.decide(18L,
-                    new ReferralDtos.DecisionRequest("MAYBE", null), 200L))
+            var req = new ReferralDtos.DecisionRequest("MAYBE", null);
+            assertThatThrownBy(() -> service.decide(18L, req, 200L))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("not a valid status");
         }
@@ -417,8 +417,8 @@ class ReferralServiceTest {
         void decide_throwsWhenReferralMissing() {
             when(referralRepository.findById(404L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.decide(404L,
-                    new ReferralDtos.DecisionRequest("ACCEPTED", null), 200L))
+            var req = new ReferralDtos.DecisionRequest("ACCEPTED", null);
+            assertThatThrownBy(() -> service.decide(404L, req, 200L))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("404");
         }

@@ -190,8 +190,8 @@ class CatalogServiceTest {
     void createSpecialty_rejectsDuplicateName() {
         when(specialtyRepository.existsByName("PTSD & Trauma")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.createSpecialty(
-                new CatalogDtos.SpecialtyRequest("PTSD & Trauma", "desc")))
+        var req = new CatalogDtos.SpecialtyRequest("PTSD & Trauma", "desc");
+        assertThatThrownBy(() -> service.createSpecialty(req))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("already exists");
 
@@ -226,8 +226,8 @@ class CatalogServiceTest {
                 .thenReturn(false);
         when(countyRepository.findById(13L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createOrganization(
-                orgRequest("Example New Clinic", "FQHC")))
+        var req = orgRequest("Example New Clinic", "FQHC");
+        assertThatThrownBy(() -> service.createOrganization(req))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("County 13");
     }
@@ -244,8 +244,8 @@ class CatalogServiceTest {
                 .thenReturn(false);
         when(countyRepository.findById(13L)).thenReturn(Optional.of(county));
 
-        assertThatThrownBy(() -> service.createOrganization(
-                orgRequest("Example New Clinic", "SPACE_STATION")))
+        var req = orgRequest("Example New Clinic", "SPACE_STATION");
+        assertThatThrownBy(() -> service.createOrganization(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("not a valid organization type")
                 .hasMessageContaining("HOSPITAL");
@@ -257,8 +257,8 @@ class CatalogServiceTest {
         when(organizationRepository.existsByName("Example Behavioral Health Center"))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> service.createOrganization(
-                orgRequest("Example Behavioral Health Center", "HOSPITAL")))
+        var req = orgRequest("Example Behavioral Health Center", "HOSPITAL");
+        assertThatThrownBy(() -> service.createOrganization(req))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("already exists");
 
@@ -296,8 +296,8 @@ class CatalogServiceTest {
         when(organizationRepository.existsByName("Example Rival Clinic"))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> service.updateOrganization(1L,
-                orgRequest("Example Rival Clinic", "HOSPITAL")))
+        var req = orgRequest("Example Rival Clinic", "HOSPITAL");
+        assertThatThrownBy(() -> service.updateOrganization(1L, req))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("already exists");
 
@@ -311,8 +311,8 @@ class CatalogServiceTest {
     void updateOrganization_throwsWhenMissing() {
         when(organizationRepository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.updateOrganization(404L,
-                orgRequest("Example New Clinic", "HOSPITAL")))
+        var req = orgRequest("Example New Clinic", "HOSPITAL");
+        assertThatThrownBy(() -> service.updateOrganization(404L, req))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Organization 404");
     }

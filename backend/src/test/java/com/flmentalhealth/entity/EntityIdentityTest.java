@@ -205,6 +205,14 @@ class EntityIdentityTest {
      * equal to itself by reference, which is what keeps it usable in a
      * collection before it is persisted.
      */
+    /*
+     * Same actual and expected is the point: this asserts that equals()
+     * is reflexive for an entity whose id is still null, the one case
+     * where id-based equality falls back on reference identity. Writing
+     * it any other way tests something else - asserting on the boolean
+     * instead just trades this rule for S5838.
+     */
+    @SuppressWarnings("java:S5863")
     @ParameterizedTest(name = "{0}")
     @MethodSource("everyEntity")
     @DisplayName("an unsaved instance is still equal to itself by reference")

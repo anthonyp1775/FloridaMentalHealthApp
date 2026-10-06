@@ -57,6 +57,13 @@ public interface ProviderRepository extends JpaRepository<Provider, Long> {
              AND (:telehealth  IS NULL OR p.offersTelehealth = :telehealth)
              AND (:acceptingOnly = false OR p.acceptingNewClients = true)
            """)
+    /*
+     * Eight parameters, and every one is a bind variable the JPQL above
+     * requires - one per optional filter, plus Pageable. Collapsing them
+     * into a criteria object would mean SpEL expressions in the query
+     * and a less readable one at that.
+     */
+    @SuppressWarnings("java:S107")
     Page<Provider> search(@Param("countyId")     Long countyId,
                           @Param("specialtyId")  Long specialtyId,
                           @Param("languageId")   Long languageId,

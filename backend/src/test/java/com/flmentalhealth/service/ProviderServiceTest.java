@@ -246,8 +246,8 @@ class ProviderServiceTest {
         void updateCapacity_rejectsAcceptingWithNoSlots() {
             when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
 
-            assertThatThrownBy(() -> service.updateCapacity(1L,
-                    new ProviderDtos.CapacityRequest(0, true, "oops")))
+            var req = new ProviderDtos.CapacityRequest(0, true, "oops");
+            assertThatThrownBy(() -> service.updateCapacity(1L, req))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining(
                             "cannot be accepting new clients with zero open slots");
@@ -292,8 +292,8 @@ class ProviderServiceTest {
             when(organizationRepository.findById(1L))
                     .thenReturn(Optional.of(TestFixtures.organization()));
 
-            assertThatThrownBy(() -> service.create(
-                    request("LCSW", 0, true, "SW9001")))
+            var req = request("LCSW", 0, true, "SW9001");
+            assertThatThrownBy(() -> service.create(req))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("zero open slots");
 
@@ -308,8 +308,8 @@ class ProviderServiceTest {
             when(organizationRepository.findById(1L))
                     .thenReturn(Optional.of(TestFixtures.organization()));
 
-            assertThatThrownBy(() -> service.update(1L,
-                    request("LCSW", 0, true, "ME1")))
+            var req = request("LCSW", 0, true, "ME1");
+            assertThatThrownBy(() -> service.update(1L, req))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("zero open slots");
         }
@@ -349,8 +349,8 @@ class ProviderServiceTest {
         void create_rejectsDuplicateLicense() {
             when(providerRepository.existsByLicenseNumber("ME1")).thenReturn(true);
 
-            assertThatThrownBy(() -> service.create(
-                    request("PSYCHIATRIST", 2, true, "ME1")))
+            var req = request("PSYCHIATRIST", 2, true, "ME1");
+            assertThatThrownBy(() -> service.create(req))
                     .isInstanceOf(DuplicateResourceException.class)
                     .hasMessageContaining("already registered");
 
@@ -363,8 +363,8 @@ class ProviderServiceTest {
             when(providerRepository.existsByLicenseNumber("SW9002")).thenReturn(false);
             when(organizationRepository.findById(1L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.create(
-                    request("LCSW", 2, true, "SW9002")))
+            var req = request("LCSW", 2, true, "SW9002");
+            assertThatThrownBy(() -> service.create(req))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("Organization 1");
         }
@@ -376,8 +376,8 @@ class ProviderServiceTest {
             when(organizationRepository.findById(1L))
                     .thenReturn(Optional.of(TestFixtures.organization()));
 
-            assertThatThrownBy(() -> service.create(
-                    request("WIZARD", 2, true, "XX1")))
+            var req = request("WIZARD", 2, true, "XX1");
+            assertThatThrownBy(() -> service.create(req))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("not a valid credential")
                     .hasMessageContaining("PSYCHIATRIST");
@@ -427,8 +427,8 @@ class ProviderServiceTest {
             when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
             when(providerRepository.existsByLicenseNumber("ME9999")).thenReturn(true);
 
-            assertThatThrownBy(() -> service.update(1L,
-                    request("PSYCHIATRIST", 2, true, "ME9999")))
+            var req = request("PSYCHIATRIST", 2, true, "ME9999");
+            assertThatThrownBy(() -> service.update(1L, req))
                     .isInstanceOf(DuplicateResourceException.class)
                     .hasMessageContaining("already registered");
         }

@@ -22,6 +22,15 @@ import java.util.List;
  * and the IDE often suggests that one first. Importing the wrong one
  * produces errors that point nowhere near the real problem.
  */
+/*
+ * UserDetails extends Serializable, and the User entity it holds is not.
+ * That is deliberate and safe here: the session policy is STATELESS and
+ * there is no session store, so a UserPrincipal is never serialized.
+ * Marking the field transient would be worse - it would silently null
+ * out if anything ever did deserialize one. The cleaner long-term shape
+ * is to hold the id, email and authorities rather than the entity.
+ */
+@SuppressWarnings("java:S1948")
 @Getter
 public class UserPrincipal implements UserDetails {
 

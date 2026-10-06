@@ -250,6 +250,15 @@ public class ProviderService {
      * id that does not exist. Silently dropping an unknown id would let
      * a typo quietly remove a filter from a provider's profile.
      */
+    /*
+     * Deliberately Function<Long, ...> rather than the specialised
+     * LongFunction. The ids arrive from JSON with no element-level
+     * validation, so a null in the list is possible: LongFunction would
+     * unbox it into a bare NullPointerException, where findById(null)
+     * raises an error that says what went wrong. The boxing this rule
+     * objects to costs nothing on lists this size.
+     */
+    @SuppressWarnings("java:S4276")
     private <T> Set<T> resolve(List<Long> ids,
                                java.util.function.Function<Long, java.util.Optional<T>> finder,
                                String label) {

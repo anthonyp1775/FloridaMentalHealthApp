@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -156,7 +157,7 @@ public class ReferralRequest {
         this.status = newStatus;
 
         if (!newStatus.isOpen()) {
-            this.resolvedAt = LocalDateTime.now();
+            this.resolvedAt = LocalDateTime.now(ZoneId.systemDefault());
             // A withdrawal is the client's own action, not a staff
             // resolution, so resolvedBy stays null in that case.
             if (newStatus != Status.WITHDRAWN) {

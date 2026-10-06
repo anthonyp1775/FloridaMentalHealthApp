@@ -158,7 +158,8 @@ class AuthServiceTest {
         when(userRepository.existsByEmail("alicia.moreno@example.com"))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> service.register(registration()))
+        var req = registration();
+        assertThatThrownBy(() -> service.register(req))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("already exists");
 
@@ -179,7 +180,8 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.register(registration()))
+        var req = registration();
+        assertThatThrownBy(() -> service.register(req))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("run the seed script");
     }
@@ -220,8 +222,8 @@ class AuthServiceTest {
                 .thenThrow(new UsernameNotFoundException(
                         "User not found: ghost@nowhere.test"));
 
-        assertThatThrownBy(() -> service.login(
-                new AuthDtos.LoginRequest("ghost@nowhere.test", "anything")))
+        var req = new AuthDtos.LoginRequest("ghost@nowhere.test", "anything");
+        assertThatThrownBy(() -> service.login(req))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage("Email or password is incorrect")
                 // The address that was tried must not survive into the
@@ -235,8 +237,8 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
-        assertThatThrownBy(() -> service.login(
-                new AuthDtos.LoginRequest("alicia.moreno@example.com", "wrong")))
+        var req = new AuthDtos.LoginRequest("alicia.moreno@example.com", "wrong");
+        assertThatThrownBy(() -> service.login(req))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage("Email or password is incorrect");
 

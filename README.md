@@ -1,4 +1,5 @@
 # Florida Mental Health App
+[![Quality gate](http://localhost:9000/api/project_badges/quality_gate?project=florida-mental-health-app&token=sqb_f979715eb20ab8050062713b7b20f61c6d1f9a54)](http://localhost:9000/dashboard?id=florida-mental-health-app)
 
 A mental health navigation and referral system for the state of Florida.
 

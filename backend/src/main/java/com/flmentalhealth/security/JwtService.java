@@ -28,6 +28,16 @@ import java.util.function.Function;
  * the user is and what roles they hold - nothing that would matter if
  * it were read.
  */
+/*
+ * java.util.Date is not a choice here. jjwt's builder and parser take
+ * Date and have no java.time overload (jwtk/jjwt#577, closed as a
+ * duplicate of #235 - the documented approach is to convert yourself).
+ * Every Date in this class exists at that boundary and nowhere else.
+ *
+ * S2143 is raised at file level (on the import, outside the class body),
+ * so @SuppressWarnings cannot reach it. It is marked Accepted in
+ * SonarQube with this same reasoning.
+ */
 @Service
 public class JwtService {
 

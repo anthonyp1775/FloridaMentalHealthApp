@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Makes authentication and authorization failures return the same JSON
@@ -61,7 +62,7 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint, AccessDenied
                        String message) throws IOException {
 
         ReportDtos.ErrorResponse body = new ReportDtos.ErrorResponse(
-                LocalDateTime.now().toString(),
+                LocalDateTime.now(ZoneId.systemDefault()).toString(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
