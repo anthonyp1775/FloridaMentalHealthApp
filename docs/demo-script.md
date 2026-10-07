@@ -26,7 +26,7 @@ sets up the next. Roughly 12 minutes without questions.
 | IntelliJ, test results visible | The test run — 258 cases |
 | `target/site/jacoco/index.html` | Coverage |
 
-**Fill in the password before you present**, and re-run the query below
+Re-run the query below
 once to confirm the navigator still holds ROLE_ADMIN.
 
 ```sql
@@ -41,7 +41,7 @@ GROUP BY u.id, u.email ORDER BY u.id;
 |---|---|
 | Client email | `alicia.moreno@example.com` |
 | Navigator email | `navigator@carepathfl.org` |
-| Password (both) | `________________________` |
+| Password (both) | `Password123` |
 | Provider WITH open slots | `________________________` |
 | Provider at ZERO slots | `________________________` |
 

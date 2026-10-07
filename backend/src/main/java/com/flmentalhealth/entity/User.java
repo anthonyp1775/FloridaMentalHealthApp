@@ -63,6 +63,8 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+//    private Role2 role;
+
     /**
      * Many-to-many through user_roles. User is the OWNING side - it
      * declares @JoinTable, so Hibernate writes join rows when this
