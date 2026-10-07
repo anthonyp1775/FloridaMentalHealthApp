@@ -16,10 +16,7 @@ public class ProviderDtos {
      */
     public record SearchCriteria(
             Long countyId,
-            Long specialtyId,
-            Long languageId,
             Long insurancePlanId,
-            Long populationId,
             Boolean telehealth,
             Boolean acceptingOnly) {
 
@@ -44,8 +41,7 @@ public class ProviderDtos {
             boolean offersTelehealth, boolean offersInPerson,
             boolean acceptingNewClients, int openSlots, int waitlistCount,
             Integer typicalWaitDays,
-            List<String> specialties, List<String> populations,
-            List<String> languages, List<String> insurancePlans) {}
+            List<String> insurancePlans) {}
 
     public record Request(
             @NotBlank @Size(max = 60) String firstName,
@@ -60,9 +56,6 @@ public class ProviderDtos {
             boolean acceptingNewClients,
             @PositiveOrZero int openSlots,
             Integer typicalWaitDays,
-            List<Long> specialtyIds,
-            List<Long> populationIds,
-            List<Long> languageIds,
             List<Long> insurancePlanIds) {}
 
     /** ADMIN adjusts intake capacity. */

@@ -179,20 +179,16 @@ class ProviderTest {
     class CollectionsAndIdentity {
 
         @Test
-        @DisplayName("the helpers add to the right collection")
+        @DisplayName("the helper adds to the plan collection")
         void helpers_addToTheRightSet() {
             Provider p = TestFixtures.provider(1L);
 
-            p.addSpecialty(TestFixtures.specialty(1L, "PTSD & Trauma"));
-            p.addPopulation(TestFixtures.population(1L, "Adults"));
-            p.addLanguage(TestFixtures.language(1L, "Spanish"));
             p.addInsurancePlan(TestFixtures.plan(
                     1L, "Example Medicaid MCO", InsurancePlan.PlanType.MEDICAID));
+            p.addInsurancePlan(TestFixtures.plan(
+                    2L, "Example Commercial PPO", InsurancePlan.PlanType.COMMERCIAL));
 
-            assertThat(p.getSpecialties()).hasSize(1);
-            assertThat(p.getPopulations()).hasSize(1);
-            assertThat(p.getLanguages()).hasSize(1);
-            assertThat(p.getInsurancePlans()).hasSize(1);
+            assertThat(p.getInsurancePlans()).hasSize(2);
         }
 
         @Test

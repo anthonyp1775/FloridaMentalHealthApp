@@ -34,7 +34,6 @@ export default function Layout() {
             <NavLink to="/" end className={linkClass}>Search</NavLink>
             <NavLink to="/saved" className={linkClass}>Saved</NavLink>
             <NavLink to="/referrals" className={linkClass}>My requests</NavLink>
-            <NavLink to="/profile" className={linkClass}>Profile</NavLink>
 
             {isAdmin && (
               <>

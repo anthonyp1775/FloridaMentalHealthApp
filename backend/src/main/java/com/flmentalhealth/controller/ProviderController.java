@@ -46,7 +46,7 @@ public class ProviderController {
      * the signature stays readable no matter how many filters exist.
      */
     @GetMapping("/search")
-    @Operation(summary = "Search providers by county, focus, language, insurance, population and modality")
+    @Operation(summary = "Search providers by county, insurance, telehealth and availability")
     public Page<ProviderDtos.Summary> search(
             ProviderDtos.SearchCriteria criteria,
             @PageableDefault(size = 20) Pageable pageable) {

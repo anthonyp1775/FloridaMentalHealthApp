@@ -9,7 +9,7 @@ import { Button, Empty, Notice, Spinner } from '../components/ui'
 /**
  * The search page - the core of the application.
  *
- * FILTER STATE USES useReducer, not seven useStates. The reason is the
+ * FILTER STATE USES useReducer, not four useStates. The reason is the
  * rule in the 'set' and 'toggle' branches: changing any filter resets
  * the page to 0. With separate state variables that reset has to be
  * remembered at every call site, and the bug it causes - "no results"
@@ -20,10 +20,7 @@ import { Button, Empty, Notice, Spinner } from '../components/ui'
 
 const initialFilters = {
   countyId: '',
-  specialtyId: '',
-  languageId: '',
   insurancePlanId: '',
-  populationId: '',
   telehealth: false,
   acceptingOnly: false,
   page: 0
@@ -51,12 +48,8 @@ export default function SearchPage() {
   const catalog = useFetch(
     () => Promise.all([
       catalogApi.counties(),
-      catalogApi.specialties(),
-      catalogApi.languages(),
-      catalogApi.insurancePlans(),
-      catalogApi.populations()
-    ]).then(([counties, specialties, languages, insurancePlans, populations]) =>
-      ({ counties, specialties, languages, insurancePlans, populations })),
+      catalogApi.insurancePlans()
+    ]).then(([counties, insurancePlans]) => ({ counties, insurancePlans })),
     []
   )
 
@@ -67,8 +60,7 @@ export default function SearchPage() {
    */
   const params = useMemo(() => {
     const out = { page: filters.page, size: 20 }
-    for (const key of ['countyId', 'specialtyId', 'languageId',
-                       'insurancePlanId', 'populationId']) {
+    for (const key of ['countyId', 'insurancePlanId']) {
       if (filters[key]) out[key] = filters[key]
     }
     if (filters.telehealth) out.telehealth = true
@@ -133,8 +125,8 @@ export default function SearchPage() {
       ) : providers.length === 0 ? (
         <Empty title="No providers match those filters">
           <p>
-            Try removing the insurance or language filter first - those
-            narrow the list the most.
+            Try removing the insurance filter first - it narrows the
+            list the most.
           </p>
           {activeFilterCount > 0 && (
             <Button variant="quiet" onClick={onReset}>Clear all filters</Button>

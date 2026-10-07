@@ -76,8 +76,7 @@ class ProviderControllerTest {
                 "Example Behavioral Health Center",
                 "COMMUNITY_MENTAL_HEALTH_CENTER", "Miami-Dade", "Miami",
                 true, true, accepting, openSlots, 0, 12,
-                List.of("PTSD & Trauma"), List.of("Adults"),
-                List.of("English", "Spanish"), List.of("Example Medicaid MCO"));
+                List.of("Example Commercial PPO", "Example Medicaid MCO"));
     }
 
     // =================================================================
@@ -120,10 +119,7 @@ class ProviderControllerTest {
 
         mockMvc.perform(get("/api/providers/search")
                         .param("countyId", "13")
-                        .param("specialtyId", "2")
-                        .param("languageId", "3")
                         .param("insurancePlanId", "4")
-                        .param("populationId", "5")
                         .param("telehealth", "true")
                         .param("acceptingOnly", "true"))
                 .andExpect(status().isOk());
@@ -134,10 +130,7 @@ class ProviderControllerTest {
 
         ProviderDtos.SearchCriteria criteria = captor.getValue();
         assertThat(criteria.countyId()).isEqualTo(13L);
-        assertThat(criteria.specialtyId()).isEqualTo(2L);
-        assertThat(criteria.languageId()).isEqualTo(3L);
         assertThat(criteria.insurancePlanId()).isEqualTo(4L);
-        assertThat(criteria.populationId()).isEqualTo(5L);
         assertThat(criteria.telehealth()).isTrue();
         assertThat(criteria.acceptingOnlyOrFalse()).isTrue();
     }
@@ -165,7 +158,7 @@ class ProviderControllerTest {
     // =================================================================
 
     @Test
-    @DisplayName("GET /api/providers/{id} returns the four collections as name arrays")
+    @DisplayName("GET /api/providers/{id} returns the plan list as a name array")
     void getById_returnsFullDetail() throws Exception {
         when(providerService.getById(1L)).thenReturn(detail(3, true));
 
@@ -173,9 +166,10 @@ class ProviderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.credential").value("PSYCHIATRIST"))
                 .andExpect(jsonPath("$.county").value("Miami-Dade"))
-                .andExpect(jsonPath("$.languages", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.insurancePlans",
+                        org.hamcrest.Matchers.hasSize(2)))
                 .andExpect(jsonPath("$.insurancePlans[0]")
-                        .value("Example Medicaid MCO"));
+                        .value("Example Commercial PPO"));
     }
 
     @Test

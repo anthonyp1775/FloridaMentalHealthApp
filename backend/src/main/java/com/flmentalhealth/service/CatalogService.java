@@ -14,10 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Reference data: counties, specialties, populations, languages,
- * insurance plans and organizations.
+ * Reference data: counties, insurance plans and organizations.
  *
- * Six near-identical CRUD surfaces, so one service rather than six
+ * Three near-identical CRUD surfaces, so one service rather than three
  * classes that would differ only in which repository they hold.
  *
  * Reads are open to any authenticated user because these collections
@@ -31,22 +30,13 @@ public class CatalogService {
     private static final Sort BY_NAME = Sort.by("name").ascending();
 
     private final CountyRepository countyRepository;
-    private final SpecialtyRepository specialtyRepository;
-    private final PopulationRepository populationRepository;
-    private final LanguageRepository languageRepository;
     private final InsurancePlanRepository insurancePlanRepository;
     private final OrganizationRepository organizationRepository;
 
     public CatalogService(CountyRepository countyRepository,
-                          SpecialtyRepository specialtyRepository,
-                          PopulationRepository populationRepository,
-                          LanguageRepository languageRepository,
                           InsurancePlanRepository insurancePlanRepository,
                           OrganizationRepository organizationRepository) {
         this.countyRepository = countyRepository;
-        this.specialtyRepository = specialtyRepository;
-        this.populationRepository = populationRepository;
-        this.languageRepository = languageRepository;
         this.insurancePlanRepository = insurancePlanRepository;
         this.organizationRepository = organizationRepository;
     }
@@ -63,26 +53,6 @@ public class CatalogService {
         return countyRepository.findAll(BY_NAME).stream()
                 .map(c -> new CatalogDtos.CountyResponse(
                         c.getId(), c.getName(), c.getRegion(), c.getManagingEntity()))
-                .toList();
-    }
-
-    public List<CatalogDtos.SpecialtyResponse> listSpecialties() {
-        return specialtyRepository.findAll(BY_NAME).stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    public List<CatalogDtos.PopulationResponse> listPopulations() {
-        return populationRepository.findAll().stream()
-                .map(p -> new CatalogDtos.PopulationResponse(
-                        p.getId(), p.getName(), p.getAgeRange()))
-                .toList();
-    }
-
-    public List<CatalogDtos.LanguageResponse> listLanguages() {
-        return languageRepository.findAll(BY_NAME).stream()
-                .map(l -> new CatalogDtos.LanguageResponse(
-                        l.getId(), l.getName(), l.getIsoCode()))
                 .toList();
     }
 
@@ -106,21 +76,6 @@ public class CatalogService {
     // =================================================================
     // Writes - ADMIN only
     // =================================================================
-
-    @Transactional
-    public CatalogDtos.SpecialtyResponse createSpecialty(
-            CatalogDtos.SpecialtyRequest request) {
-
-        if (specialtyRepository.existsByName(request.name())) {
-            throw new DuplicateResourceException(
-                    "A specialty named '" + request.name() + "' already exists");
-        }
-
-        Specialty saved = specialtyRepository.save(
-                new Specialty(request.name(), request.description()));
-
-        return toResponse(saved);
-    }
 
     @Transactional
     public CatalogDtos.OrganizationResponse createOrganization(
@@ -198,11 +153,6 @@ public class CatalogService {
         return organizationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Organization " + id + " not found"));
-    }
-
-    private CatalogDtos.SpecialtyResponse toResponse(Specialty s) {
-        return new CatalogDtos.SpecialtyResponse(
-                s.getId(), s.getName(), s.getDescription());
     }
 
     private CatalogDtos.OrganizationResponse toResponse(Organization o) {

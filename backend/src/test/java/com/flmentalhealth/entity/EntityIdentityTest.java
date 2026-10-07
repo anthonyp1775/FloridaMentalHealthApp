@@ -64,21 +64,6 @@ class EntityIdentityTest {
                         TestFixtures.county(3L, "Duval"),
                         new County(), new County()),
 
-                arguments("Specialty",
-                        TestFixtures.specialty(4L, "PTSD & Trauma"),
-                        TestFixtures.specialty(4L, "Depression"),
-                        new Specialty(), new Specialty()),
-
-                arguments("Population",
-                        TestFixtures.population(6L, "Adults"),
-                        TestFixtures.population(6L, "Adolescents"),
-                        new Population(), new Population()),
-
-                arguments("Language",
-                        TestFixtures.language(8L, "Spanish"),
-                        TestFixtures.language(8L, "Creole"),
-                        new Language(), new Language()),
-
                 arguments("InsurancePlan",
                         TestFixtures.plan(9L, "Example Medicaid MCO",
                                 InsurancePlan.PlanType.MEDICAID),
@@ -110,12 +95,7 @@ class EntityIdentityTest {
                 arguments("ReferralStatusHistory",
                         historyWithId(14L, "first note"),
                         historyWithId(14L, "second note"),
-                        new ReferralStatusHistory(), new ReferralStatusHistory()),
-
-                arguments("ClientProfile",
-                        profileFor(15L, "305-555-0101"),
-                        profileFor(15L, "305-555-0199"),
-                        new ClientProfile(), new ClientProfile()));
+                        new ReferralStatusHistory(), new ReferralStatusHistory()));
     }
 
     private static Provider differentProviderSameId(Long id) {
@@ -130,14 +110,6 @@ class EntityIdentityTest {
                 Status.PENDING, Status.ACCEPTED, note, TestFixtures.navigator(200L));
         h.setId(id);
         return h;
-    }
-
-    /** ClientProfile's identifier is userId - it shares the user's key. */
-    private static ClientProfile profileFor(Long userId, String phone) {
-        ClientProfile p = new ClientProfile(TestFixtures.client(userId));
-        p.setUserId(userId);
-        p.setPhone(phone);
-        return p;
     }
 
     // =================================================================
@@ -236,7 +208,7 @@ class EntityIdentityTest {
      * That is a real hazard of identifier-based hashCode, and this test
      * pins the behavior rather than pretending it does not exist. It is
      * safe in this application because every Set of entities - a
-     * provider's specialties, languages, populations and plans, and a
+     * provider's insurance plans, and a
      * user's roles - is filled with rows already loaded from the
      * database, so their ids are set before they are ever added.
      *

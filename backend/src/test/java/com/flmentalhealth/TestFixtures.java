@@ -39,24 +39,6 @@ public final class TestFixtures {
         return county(13L, "Miami-Dade");
     }
 
-    public static Specialty specialty(Long id, String name) {
-        Specialty s = new Specialty(name, name + " care");
-        s.setId(id);
-        return s;
-    }
-
-    public static Population population(Long id, String name) {
-        Population p = new Population(name, "18+");
-        p.setId(id);
-        return p;
-    }
-
-    public static Language language(Long id, String name) {
-        Language l = new Language(name, name.substring(0, 2).toLowerCase());
-        l.setId(id);
-        return l;
-    }
-
     public static InsurancePlan plan(Long id, String name, InsurancePlan.PlanType type) {
         InsurancePlan p = new InsurancePlan(name, type);
         p.setId(id);

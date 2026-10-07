@@ -24,24 +24,17 @@ USE fl_mental_health_db;
 -- order below is correct, but one mis-ordered line leaves the database
 -- half-dropped and the next CREATE fails confusingly. Belt and braces.
 --
--- Order note: client_profiles must come BEFORE counties, languages and
--- insurance_plans - it holds foreign keys into all three.
+-- Order note: provider_insurance must come BEFORE insurance_plans and
+-- providers - it holds foreign keys into both.
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS referral_status_history;
 DROP TABLE IF EXISTS referral_requests;
 DROP TABLE IF EXISTS saved_providers;
-DROP TABLE IF EXISTS client_profiles;
 DROP TABLE IF EXISTS provider_insurance;
-DROP TABLE IF EXISTS provider_languages;
-DROP TABLE IF EXISTS provider_populations;
-DROP TABLE IF EXISTS provider_specialties;
 DROP TABLE IF EXISTS providers;
 DROP TABLE IF EXISTS organizations;
 DROP TABLE IF EXISTS insurance_plans;
-DROP TABLE IF EXISTS languages;
-DROP TABLE IF EXISTS populations;
-DROP TABLE IF EXISTS specialties;
 DROP TABLE IF EXISTS counties;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS users;
@@ -108,41 +101,6 @@ CREATE TABLE counties (
     PRIMARY KEY (id),
     CONSTRAINT uq_counties_name UNIQUE (name),
     INDEX idx_counties_region (region)
-) ENGINE=InnoDB;
-
-
--- Clinical focus areas. This is the "what do they treat" filter -
--- deliberately NOT a diagnostic instrument, just a browsable category
--- a person can recognize and select for themselves.
-CREATE TABLE specialties (
-    id          BIGINT       NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(80)  NOT NULL,
-    description VARCHAR(255),
-    PRIMARY KEY (id),
-    CONSTRAINT uq_specialties_name UNIQUE (name)
-) ENGINE=InnoDB;
-
-
--- Age group / unit of treatment: Children, Adolescents, Adults,
--- Older adults, Couples, Families, Groups.
--- A separate question from "what do they treat".
-CREATE TABLE populations (
-    id          BIGINT      NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(60) NOT NULL,
-    age_range   VARCHAR(30),           -- display only, e.g. "13-17"
-    PRIMARY KEY (id),
-    CONSTRAINT uq_populations_name UNIQUE (name)
-) ENGINE=InnoDB;
-
-
--- Languages a provider offers services in. In Florida, Spanish and
--- Haitian Creole are first-order access barriers, not nice-to-haves.
-CREATE TABLE languages (
-    id          BIGINT      NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(50) NOT NULL,
-    iso_code    VARCHAR(8),            -- 'es', 'ht', 'pt'
-    PRIMARY KEY (id),
-    CONSTRAINT uq_languages_name UNIQUE (name)
 ) ENGINE=InnoDB;
 
 
@@ -275,46 +233,11 @@ CREATE TABLE providers (
 
 
 -- ---------------------------------------------------------------------
--- The four many-to-many relationships. Same shape each time: composite
--- primary key (so a pairing cannot be duplicated), CASCADE from the
--- provider side, RESTRICT from the lookup side, and a reverse index so
--- the filter query can start from either end.
+-- The many-to-many relationship: composite primary key (so a pairing
+-- cannot be duplicated), CASCADE from the provider side, RESTRICT from
+-- the lookup side, and a reverse index so the filter query can start
+-- from either end.
 -- ---------------------------------------------------------------------
-
-CREATE TABLE provider_specialties (
-    provider_id  BIGINT NOT NULL,
-    specialty_id BIGINT NOT NULL,
-    PRIMARY KEY (provider_id, specialty_id),
-    CONSTRAINT fk_prov_spec_provider
-        FOREIGN KEY (provider_id)  REFERENCES providers (id)   ON DELETE CASCADE,
-    CONSTRAINT fk_prov_spec_specialty
-        FOREIGN KEY (specialty_id) REFERENCES specialties (id) ON DELETE RESTRICT,
-    INDEX idx_prov_spec_specialty (specialty_id)
-) ENGINE=InnoDB;
-
-
-CREATE TABLE provider_populations (
-    provider_id   BIGINT NOT NULL,
-    population_id BIGINT NOT NULL,
-    PRIMARY KEY (provider_id, population_id),
-    CONSTRAINT fk_prov_pop_provider
-        FOREIGN KEY (provider_id)   REFERENCES providers (id)   ON DELETE CASCADE,
-    CONSTRAINT fk_prov_pop_population
-        FOREIGN KEY (population_id) REFERENCES populations (id) ON DELETE RESTRICT,
-    INDEX idx_prov_pop_population (population_id)
-) ENGINE=InnoDB;
-
-
-CREATE TABLE provider_languages (
-    provider_id BIGINT NOT NULL,
-    language_id BIGINT NOT NULL,
-    PRIMARY KEY (provider_id, language_id),
-    CONSTRAINT fk_prov_lang_provider
-        FOREIGN KEY (provider_id) REFERENCES providers (id) ON DELETE CASCADE,
-    CONSTRAINT fk_prov_lang_language
-        FOREIGN KEY (language_id) REFERENCES languages (id) ON DELETE RESTRICT,
-    INDEX idx_prov_lang_language (language_id)
-) ENGINE=InnoDB;
 
 
 CREATE TABLE provider_insurance (
@@ -330,42 +253,6 @@ CREATE TABLE provider_insurance (
 
 
 -- =====================================================================
--- CLIENT PROFILES
--- One-to-one with users. Preferences the person states about
--- themselves, used to pre-fill search filters. NOT clinical data.
--- =====================================================================
-
-CREATE TABLE client_profiles (
-    -- Shared primary key: the PK is also the FK to users. This is the
-    -- cleanest way to model a true one-to-one - it makes a second
-    -- profile row for the same user structurally impossible.
-    user_id                 BIGINT      NOT NULL,
-
-    phone                   VARCHAR(30),
-    preferred_county_id     BIGINT,
-    preferred_language_id   BIGINT,
-    insurance_plan_id       BIGINT,
-
-    prefers_telehealth      BOOLEAN     NOT NULL DEFAULT FALSE,
-    -- How the person wants to be contacted about a referral.
-    contact_preference      VARCHAR(20) NOT NULL DEFAULT 'EMAIL',
-
-    updated_at              DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                        ON UPDATE CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (user_id),
-    CONSTRAINT fk_client_profiles_user
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_client_profiles_county
-        FOREIGN KEY (preferred_county_id) REFERENCES counties (id) ON DELETE SET NULL,
-    CONSTRAINT fk_client_profiles_language
-        FOREIGN KEY (preferred_language_id) REFERENCES languages (id) ON DELETE SET NULL,
-    CONSTRAINT fk_client_profiles_insurance
-        FOREIGN KEY (insurance_plan_id) REFERENCES insurance_plans (id) ON DELETE SET NULL,
-    CONSTRAINT chk_client_contact_pref
-        CHECK (contact_preference IN ('EMAIL', 'PHONE', 'TEXT')),
-    INDEX idx_client_profiles_county (preferred_county_id)
-) ENGINE=InnoDB;
 
 
 -- =====================================================================
@@ -508,22 +395,16 @@ CREATE TABLE referral_status_history (
 -- FROM providers
 -- WHERE accepting_new_clients = TRUE AND open_slots = 0 AND is_active = TRUE;
 
--- 3. The main search query - Spanish-speaking, Medicaid, PTSD,
---    telehealth, accepting clients. Should return a handful of rows.
+-- 3. The main search query - Medicaid, telehealth, accepting clients,
+--    in one county. Should return a handful of rows.
 -- SELECT p.id, p.first_name, p.last_name, p.credential,
 --        o.name AS organization, c.name AS county, p.open_slots
 -- FROM providers p
--- JOIN organizations o        ON o.id = p.organization_id
--- JOIN counties c             ON c.id = o.county_id
--- JOIN provider_specialties ps ON ps.provider_id = p.id
--- JOIN specialties s          ON s.id = ps.specialty_id
--- JOIN provider_languages pl  ON pl.provider_id = p.id
--- JOIN languages l            ON l.id = pl.language_id
--- JOIN provider_insurance pi  ON pi.provider_id = p.id
--- JOIN insurance_plans ip     ON ip.id = pi.insurance_plan_id
--- WHERE s.name = 'PTSD & Trauma'
---   AND l.name = 'Spanish'
---   AND ip.plan_type = 'MEDICAID'
+-- JOIN organizations o       ON o.id = p.organization_id
+-- JOIN counties c            ON c.id = o.county_id
+-- JOIN provider_insurance pi ON pi.provider_id = p.id
+-- JOIN insurance_plans ip    ON ip.id = pi.insurance_plan_id
+-- WHERE ip.plan_type = 'MEDICAID'
 --   AND p.offers_telehealth = TRUE
 --   AND p.accepting_new_clients = TRUE
 --   AND p.is_active = TRUE

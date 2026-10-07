@@ -29,26 +29,17 @@ public class ProviderService {
 
     private final ProviderRepository providerRepository;
     private final OrganizationRepository organizationRepository;
-    private final SpecialtyRepository specialtyRepository;
-    private final PopulationRepository populationRepository;
-    private final LanguageRepository languageRepository;
     private final InsurancePlanRepository insurancePlanRepository;
     private final SavedProviderRepository savedProviderRepository;
     private final UserRepository userRepository;
 
     public ProviderService(ProviderRepository providerRepository,
                            OrganizationRepository organizationRepository,
-                           SpecialtyRepository specialtyRepository,
-                           PopulationRepository populationRepository,
-                           LanguageRepository languageRepository,
                            InsurancePlanRepository insurancePlanRepository,
                            SavedProviderRepository savedProviderRepository,
                            UserRepository userRepository) {
         this.providerRepository = providerRepository;
         this.organizationRepository = organizationRepository;
-        this.specialtyRepository = specialtyRepository;
-        this.populationRepository = populationRepository;
-        this.languageRepository = languageRepository;
         this.insurancePlanRepository = insurancePlanRepository;
         this.savedProviderRepository = savedProviderRepository;
         this.userRepository = userRepository;
@@ -60,7 +51,7 @@ public class ProviderService {
 
     /**
      * Every filter is optional. A null parameter disables its clause, so
-     * one query handles all 128 combinations of the seven filters rather
+     * one query handles all 16 combinations of the four filters rather
      * than a combinatorial pile of derived method names.
      *
      * The repository query fetches organization and county eagerly, so
@@ -70,10 +61,7 @@ public class ProviderService {
                                              Pageable pageable) {
         return providerRepository.search(
                         criteria.countyId(),
-                        criteria.specialtyId(),
-                        criteria.languageId(),
                         criteria.insurancePlanId(),
-                        criteria.populationId(),
                         criteria.telehealth(),
                         criteria.acceptingOnlyOrFalse(),
                         pageable)
@@ -231,16 +219,10 @@ public class ProviderService {
         provider.setAcceptingNewClients(request.acceptingNewClients());
 
         /*
-         * Collections are REPLACED, not merged. The request carries the
-         * complete intended set, so removing a specialty is simply
-         * leaving its id out - which is what a client expects from PUT.
+         * The collection is REPLACED, not merged. The request carries the
+         * complete intended set, so removing a plan is simply leaving its
+         * id out - which is what a client expects from PUT.
          */
-        provider.setSpecialties(resolve(request.specialtyIds(),
-                specialtyRepository::findById, "Specialty"));
-        provider.setPopulations(resolve(request.populationIds(),
-                populationRepository::findById, "Population"));
-        provider.setLanguages(resolve(request.languageIds(),
-                languageRepository::findById, "Language"));
         provider.setInsurancePlans(resolve(request.insurancePlanIds(),
                 insurancePlanRepository::findById, "Insurance plan"));
     }
@@ -315,7 +297,7 @@ public class ProviderService {
     }
 
     /**
-     * Full detail. The four collections are lazy, so they load here -
+     * Full detail. The insurance collection is lazy, so it loads here -
      * inside the transaction, which is the only place it is safe with
      * open-in-view disabled.
      */
@@ -340,9 +322,6 @@ public class ProviderService {
                 p.getOpenSlots(),
                 p.getWaitlistCount(),
                 p.getTypicalWaitDays(),
-                names(p.getSpecialties(), Specialty::getName),
-                names(p.getPopulations(), Population::getName),
-                names(p.getLanguages(), Language::getName),
                 names(p.getInsurancePlans(), InsurancePlan::getName));
     }
 

@@ -62,16 +62,8 @@ export const authApi = {
   register: (body) => unwrap(client.post('/auth/register', body))
 }
 
-export const profileApi = {
-  get:    () => unwrap(client.get('/profile')),
-  update: (body) => unwrap(client.put('/profile', body))
-}
-
 export const catalogApi = {
   counties:       () => unwrap(client.get('/counties')),
-  specialties:    () => unwrap(client.get('/specialties')),
-  populations:    () => unwrap(client.get('/populations')),
-  languages:      () => unwrap(client.get('/languages')),
   insurancePlans: () => unwrap(client.get('/insurance-plans')),
   organizations:  (params) => unwrap(client.get('/organizations', { params }))
 }

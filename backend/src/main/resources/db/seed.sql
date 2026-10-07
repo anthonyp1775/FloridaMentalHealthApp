@@ -33,17 +33,10 @@ TRUNCATE TABLE referral_status_history;
 TRUNCATE TABLE referral_requests;
 TRUNCATE TABLE saved_providers;
 TRUNCATE TABLE provider_insurance;
-TRUNCATE TABLE provider_languages;
-TRUNCATE TABLE provider_populations;
-TRUNCATE TABLE provider_specialties;
 TRUNCATE TABLE providers;
 TRUNCATE TABLE organizations;
 TRUNCATE TABLE insurance_plans;
-TRUNCATE TABLE languages;
-TRUNCATE TABLE populations;
-TRUNCATE TABLE specialties;
 TRUNCATE TABLE counties;
-TRUNCATE TABLE client_profiles;
 TRUNCATE TABLE user_roles;
 TRUNCATE TABLE users;
 TRUNCATE TABLE roles;
@@ -58,9 +51,6 @@ INSERT INTO roles (name) VALUES
     ('ROLE_ADMIN'),
     ('ROLE_USER');
 
--- !! REPLACE THE HASH BEFORE RUNNING !!
--- Generate a BCrypt hash (strength 11) for your demo password, then
--- paste it over EVERY occurrence of PASTE_BCRYPT_HASH_HERE below.
 INSERT INTO users (first_name, last_name, email, password) VALUES
     -- Navigator / clinic staff
     ('Dana',    'Whitfield', 'navigator@carepathfl.org', '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
@@ -165,66 +155,6 @@ INSERT INTO counties (name, region, managing_entity) VALUES
 
     ('Miami-Dade',  'Southern',  'Thriving Mind South Florida'),
     ('Monroe',      'Southern',  'Thriving Mind South Florida');
-
-
--- =====================================================================
--- SPECIALTIES - clinical focus areas
--- Browsable categories a person can recognize for themselves.
--- This is NOT a screening instrument and carries no severity scoring.
--- =====================================================================
-
-INSERT INTO specialties (name, description) VALUES
-    ('Anxiety Disorders',           'Generalized anxiety, panic, phobias, social anxiety'),
-    ('Depression & Mood Disorders', 'Major depression, persistent depressive disorder'),
-    ('Bipolar Disorder',            'Mood episode management and stabilization'),
-    ('PTSD & Trauma',               'Post-traumatic stress and trauma-related concerns'),
-    ('OCD',                         'Obsessive-compulsive disorder and related conditions'),
-    ('ADHD',                        'Attention and executive function concerns'),
-    ('Autism Spectrum',             'Autism-informed support across the lifespan'),
-    ('Eating Disorders',            'Disordered eating and body image concerns'),
-    ('Substance Use',               'Substance use disorder treatment and recovery support'),
-    ('Co-Occurring Disorders',      'Concurrent mental health and substance use treatment'),
-    ('Psychotic Disorders',         'Schizophrenia and related conditions'),
-    ('Personality Disorders',       'Including DBT-informed approaches'),
-    ('Grief & Loss',                'Bereavement and complicated grief'),
-    ('Perinatal Mental Health',     'Pregnancy, postpartum and reproductive mental health'),
-    ('Anger Management',            'Emotional regulation and anger-related concerns'),
-    ('Sleep Concerns',              'Insomnia and sleep-related difficulties'),
-    ('Chronic Illness Adjustment',  'Coping with long-term medical conditions'),
-    ('Life Transitions & Stress',   'Job change, relocation, caregiving, identity shifts'),
-    ('Relationship & Family',       'Couples, parenting and family conflict'),
-    ('Veterans & Military Families','Service-connected and military-family concerns');
-
-
--- =====================================================================
--- POPULATIONS - who a provider serves
--- =====================================================================
-
-INSERT INTO populations (name, age_range) VALUES
-    ('Children',    '0-12'),
-    ('Adolescents', '13-17'),
-    ('Adults',      '18-64'),
-    ('Older Adults','65+'),
-    ('Couples',     NULL),
-    ('Families',    NULL),
-    ('Groups',      NULL);
-
-
--- =====================================================================
--- LANGUAGES
--- Spanish and Haitian Creole are first-order access considerations
--- in Florida, not optional extras.
--- =====================================================================
-
-INSERT INTO languages (name, iso_code) VALUES
-    ('English',         'en'),
-    ('Spanish',         'es'),
-    ('Haitian Creole',  'ht'),
-    ('Portuguese',      'pt'),
-    ('French',          'fr'),
-    ('Vietnamese',      'vi'),
-    ('Russian',         'ru'),
-    ('American Sign Language', 'ase');
 
 
 -- =====================================================================
@@ -369,238 +299,7 @@ JOIN organizations o ON o.name = v.org;
 
 
 -- =====================================================================
--- PROVIDER SPECIALTIES (many-to-many #1)
--- Row-constructor IN keeps this compact and readable; no ids hardcoded.
--- =====================================================================
-
-INSERT INTO provider_specialties (provider_id, specialty_id)
-SELECT p.id, s.id
-FROM providers p
-JOIN specialties s ON (p.license_number, s.name) IN (
-    ('FL-LMHC-10234','Anxiety Disorders'),
-    ('FL-LMHC-10234','Depression & Mood Disorders'),
-    ('FL-LMHC-10234','Life Transitions & Stress'),
-    ('FL-MD-40118','Depression & Mood Disorders'),
-    ('FL-MD-40118','Bipolar Disorder'),
-    ('FL-MD-40118','Anxiety Disorders'),
-    ('FL-PSY-20451','OCD'),
-    ('FL-PSY-20451','Anxiety Disorders'),
-    ('FL-LCSW-31092','PTSD & Trauma'),
-    ('FL-LCSW-31092','Relationship & Family'),
-    ('FL-LCSW-31092','Depression & Mood Disorders'),
-    ('FL-LMFT-50277','Relationship & Family'),
-    ('FL-LMFT-50277','ADHD'),
-    ('FL-LMFT-50277','Life Transitions & Stress'),
-    ('FL-LCSW-31447','PTSD & Trauma'),
-    ('FL-LCSW-31447','Life Transitions & Stress'),
-    ('FL-LCSW-31447','Grief & Loss'),
-    ('FL-CAP-60310','Substance Use'),
-    ('FL-CAP-60310','Co-Occurring Disorders'),
-
-    ('FL-ARNP-70225','Depression & Mood Disorders'),
-    ('FL-ARNP-70225','ADHD'),
-    ('FL-ARNP-70225','Anxiety Disorders'),
-    ('FL-LMHC-10788','Psychotic Disorders'),
-    ('FL-LMHC-10788','Co-Occurring Disorders'),
-    ('FL-LMHC-10903','Grief & Loss'),
-    ('FL-LMHC-10903','PTSD & Trauma'),
-    ('FL-CRPS-80144','Substance Use'),
-    ('FL-CRPS-80144','Co-Occurring Disorders'),
-    ('FL-PSY-20988','Personality Disorders'),
-    ('FL-PSY-20988','PTSD & Trauma'),
-
-    ('FL-LMFT-50613','Relationship & Family'),
-    ('FL-LMFT-50613','Perinatal Mental Health'),
-    ('FL-LMFT-50613','Grief & Loss'),
-    ('FL-LMHC-11256','ADHD'),
-    ('FL-LMHC-11256','Anxiety Disorders'),
-    ('FL-LMHC-11256','Life Transitions & Stress'),
-
-    ('FL-MD-40592','Psychotic Disorders'),
-    ('FL-MD-40592','Co-Occurring Disorders'),
-    ('FL-MD-40592','Bipolar Disorder'),
-    ('FL-LCSW-32015','Veterans & Military Families'),
-    ('FL-LCSW-32015','PTSD & Trauma'),
-    ('FL-LCSW-32015','Depression & Mood Disorders'),
-    ('FL-RMHCI-90337','Anxiety Disorders'),
-    ('FL-RMHCI-90337','Life Transitions & Stress'),
-    ('FL-CAP-60781','Substance Use'),
-    ('FL-CAP-60781','Co-Occurring Disorders'),
-
-    ('FL-PSY-21340','PTSD & Trauma'),
-    ('FL-PSY-21340','Chronic Illness Adjustment'),
-    ('FL-PSY-21340','Depression & Mood Disorders'),
-    ('FL-LMHC-11704','Eating Disorders'),
-    ('FL-LMHC-11704','Anxiety Disorders'),
-    ('FL-LMFT-51028','Autism Spectrum'),
-    ('FL-LMFT-51028','Relationship & Family'),
-    ('FL-LMFT-51028','ADHD'),
-    ('FL-LCSW-32488','ADHD'),
-    ('FL-LCSW-32488','Anxiety Disorders'),
-    ('FL-LCSW-32488','Relationship & Family'),
-
-    ('FL-ARNP-70841','ADHD'),
-    ('FL-ARNP-70841','Anxiety Disorders'),
-    ('FL-ARNP-70841','Depression & Mood Disorders'),
-    ('FL-LMHC-12190','Anger Management'),
-    ('FL-LMHC-12190','Life Transitions & Stress'),
-    ('FL-LCSW-32901','Grief & Loss'),
-    ('FL-LCSW-32901','Chronic Illness Adjustment'),
-    ('FL-LCSW-32901','Depression & Mood Disorders'),
-    ('FL-RCSWI-90612','Life Transitions & Stress'),
-    ('FL-RCSWI-90612','Anxiety Disorders'),
-
-    ('FL-PSY-21755','Depression & Mood Disorders'),
-    ('FL-PSY-21755','Sleep Concerns'),
-    ('FL-PSY-21755','Anxiety Disorders'),
-    ('FL-LMHC-12633','Anxiety Disorders'),
-    ('FL-LMHC-12633','Life Transitions & Stress'),
-
-    ('FL-LMHC-13047','PTSD & Trauma'),
-    ('FL-LMHC-13047','Relationship & Family'),
-    ('FL-LMHC-13047','Depression & Mood Disorders'),
-    ('FL-MD-41077','Bipolar Disorder'),
-    ('FL-MD-41077','Psychotic Disorders'),
-
-    ('FL-LMHC-13512','Anxiety Disorders'),
-    ('FL-LMHC-13512','Depression & Mood Disorders'),
-    ('FL-LMHC-13512','Life Transitions & Stress'),
-    ('FL-LMHC-13512','Grief & Loss'),
-    ('FL-ARNP-71260','Depression & Mood Disorders'),
-    ('FL-ARNP-71260','Anxiety Disorders'),
-    ('FL-ARNP-71260','ADHD'),
-
-    ('FL-MD-41533','Psychotic Disorders'),
-    ('FL-MD-41533','Bipolar Disorder'),
-    ('FL-MD-41533','Co-Occurring Disorders'),
-    ('FL-ARNP-71688','Depression & Mood Disorders'),
-    ('FL-ARNP-71688','Anxiety Disorders'),
-    ('FL-ARNP-71688','Bipolar Disorder'),
-    ('FL-CAP-61204','Substance Use'),
-    ('FL-CAP-61204','Co-Occurring Disorders'),
-    ('FL-CAP-61204','Grief & Loss')
-);
-
-
--- =====================================================================
--- PROVIDER POPULATIONS (many-to-many #2)
--- =====================================================================
-
-INSERT INTO provider_populations (provider_id, population_id)
-SELECT p.id, pop.id
-FROM providers p
-JOIN populations pop ON (p.license_number, pop.name) IN (
-    ('FL-LMHC-10234','Adults'),
-    ('FL-LMHC-10234','Adolescents'),
-    ('FL-MD-40118','Adults'),
-    ('FL-MD-40118','Older Adults'),
-    ('FL-PSY-20451','Adults'),
-    ('FL-LCSW-31092','Adults'),
-    ('FL-LCSW-31092','Couples'),
-    ('FL-LMFT-50277','Adolescents'),
-    ('FL-LMFT-50277','Families'),
-    ('FL-LCSW-31447','Adults'),
-    ('FL-LCSW-31447','Families'),
-    ('FL-CAP-60310','Adults'),
-    ('FL-CAP-60310','Groups'),
-
-    ('FL-ARNP-70225','Adults'),
-    ('FL-ARNP-70225','Adolescents'),
-    ('FL-LMHC-10788','Adults'),
-    ('FL-LMHC-10903','Adults'),
-    ('FL-LMHC-10903','Groups'),
-    ('FL-CRPS-80144','Adults'),
-    ('FL-CRPS-80144','Groups'),
-    ('FL-PSY-20988','Adults'),
-
-    ('FL-LMFT-50613','Couples'),
-    ('FL-LMFT-50613','Families'),
-    ('FL-LMFT-50613','Adults'),
-    ('FL-LMHC-11256','Adolescents'),
-    ('FL-LMHC-11256','Adults'),
-
-    ('FL-MD-40592','Adults'),
-    ('FL-LCSW-32015','Adults'),
-    ('FL-LCSW-32015','Families'),
-    ('FL-RMHCI-90337','Adults'),
-    ('FL-CAP-60781','Adults'),
-    ('FL-CAP-60781','Groups'),
-
-    ('FL-PSY-21340','Adults'),
-    ('FL-PSY-21340','Older Adults'),
-    ('FL-LMHC-11704','Adolescents'),
-    ('FL-LMHC-11704','Adults'),
-    ('FL-LMFT-51028','Children'),
-    ('FL-LMFT-51028','Families'),
-    ('FL-LCSW-32488','Children'),
-    ('FL-LCSW-32488','Adolescents'),
-    ('FL-LCSW-32488','Families'),
-
-    ('FL-ARNP-70841','Adults'),
-    ('FL-ARNP-70841','Adolescents'),
-    ('FL-LMHC-12190','Adults'),
-    ('FL-LCSW-32901','Older Adults'),
-    ('FL-LCSW-32901','Adults'),
-    ('FL-RCSWI-90612','Adults'),
-
-    ('FL-PSY-21755','Adults'),
-    ('FL-LMHC-12633','Adults'),
-    ('FL-LMHC-12633','Adolescents'),
-
-    ('FL-LMHC-13047','Adults'),
-    ('FL-LMHC-13047','Families'),
-    ('FL-MD-41077','Adults'),
-
-    ('FL-LMHC-13512','Adults'),
-    ('FL-ARNP-71260','Adults'),
-
-    ('FL-MD-41533','Adults'),
-    ('FL-ARNP-71688','Adults'),
-    ('FL-ARNP-71688','Adolescents'),
-    ('FL-CAP-61204','Adults'),
-    ('FL-CAP-61204','Groups')
-);
-
-
--- =====================================================================
--- PROVIDER LANGUAGES (many-to-many #3)
--- Everyone offers English; additional languages vary.
--- =====================================================================
-
-INSERT INTO provider_languages (provider_id, language_id)
-SELECT p.id, l.id
-FROM providers p
-JOIN languages l ON l.name = 'English';
-
-INSERT INTO provider_languages (provider_id, language_id)
-SELECT p.id, l.id
-FROM providers p
-JOIN languages l ON (p.license_number, l.name) IN (
-    ('FL-LMHC-10234','Spanish'),
-    ('FL-LCSW-31092','Spanish'),
-    ('FL-LMFT-50277','Spanish'),
-    ('FL-LCSW-31447','Haitian Creole'),
-    ('FL-LCSW-31447','French'),
-    ('FL-CAP-60310','Haitian Creole'),
-    ('FL-LMHC-10903','Haitian Creole'),
-    ('FL-CRPS-80144','Spanish'),
-    ('FL-LMHC-11256','Spanish'),
-    ('FL-PSY-21340','Spanish'),
-    ('FL-PSY-21340','Portuguese'),
-    ('FL-LMHC-13047','Spanish'),
-    ('FL-LMHC-13512','Spanish'),
-    ('FL-LMHC-13512','Portuguese'),
-    ('FL-LCSW-32488','American Sign Language'),
-    ('FL-ARNP-70225','Spanish'),
-    ('FL-LCSW-32015','Spanish'),
-    ('FL-PSY-21755','Russian'),
-    ('FL-LMFT-51028','Vietnamese'),
-    ('FL-CAP-61204','Spanish')
-);
-
-
--- =====================================================================
--- PROVIDER INSURANCE (many-to-many #4)
+-- PROVIDER INSURANCE (the many-to-many)
 -- Every provider takes Self-Pay; the rest varies. Community and FQHC
 -- clinicians carry the Medicaid plans, private practice skews
 -- commercial - which is exactly the access gap the app surfaces.
@@ -711,30 +410,6 @@ JOIN insurance_plans ip ON (p.license_number, ip.name) IN (
 
 
 -- =====================================================================
--- CLIENT PROFILES
--- Preferences the person stated about themselves. Nothing clinical.
--- =====================================================================
-
-INSERT INTO client_profiles
-    (user_id, phone, preferred_county_id, preferred_language_id,
-     insurance_plan_id, prefers_telehealth, contact_preference)
-SELECT u.id, v.phone, c.id, l.id, ip.id, v.telehealth, v.contact
-FROM (
-    SELECT 'alicia.moreno@example.com' AS email, '305-555-0211' AS phone,
-           'Miami-Dade' AS county, 'Spanish' AS lang,
-           'Sunshine Health (Medicaid)' AS plan,
-           FALSE AS telehealth, 'EMAIL' AS contact
-    UNION ALL SELECT 'devon.carter@example.com','904-555-0233','Duval','English','Florida Blue',TRUE,'PHONE'
-    UNION ALL SELECT 'rosalie.jean@example.com','954-555-0247','Broward','Haitian Creole','Simply Healthcare (Medicaid)',FALSE,'TEXT'
-    UNION ALL SELECT 'tyler.brandt@example.com','813-555-0259','Hillsborough','English','Sliding Scale Fee',TRUE,'EMAIL'
-) AS v
-JOIN users u            ON u.email = v.email
-JOIN counties c         ON c.name  = v.county
-JOIN languages l        ON l.name  = v.lang
-JOIN insurance_plans ip ON ip.name = v.plan;
-
-
--- =====================================================================
 -- SAVED PROVIDERS (shortlists)
 -- =====================================================================
 
@@ -775,27 +450,27 @@ FROM (
            'EMAIL' AS contact,
            '2026-09-08 09:15:00' AS submitted,
            '2026-09-09 14:20:00' AS resolved,
-           'navigator@carepathfl.org' AS resolver
+           'navigator@example.org' AS resolver
 
     UNION ALL SELECT 'alicia.moreno@example.com','FL-PSY-20451','WAITLISTED',
            'Interested in OCD-focused treatment.','EMAIL',
-           '2026-09-10 11:40:00','2026-09-11 10:05:00','intake@carepathfl.org'
+           '2026-09-10 11:40:00','2026-09-11 10:05:00','intake@example.org'
 
     UNION ALL SELECT 'devon.carter@example.com','FL-LCSW-32015','ACCEPTED',
            'Prior service member, would like someone familiar with that.','PHONE',
-           '2026-09-12 16:02:00','2026-09-14 09:30:00','navigator@carepathfl.org'
+           '2026-09-12 16:02:00','2026-09-14 09:30:00','navigator@example.org'
 
     UNION ALL SELECT 'devon.carter@example.com','FL-MD-40592','WAITLISTED',
            'Asking about a medication consultation.','PHONE',
-           '2026-09-15 08:22:00','2026-09-16 13:45:00','intake@carepathfl.org'
+           '2026-09-15 08:22:00','2026-09-16 13:45:00','intake@example.org'
 
     UNION ALL SELECT 'rosalie.jean@example.com','FL-LCSW-31447','ACCEPTED',
            'Would prefer to speak Creole during sessions.','TEXT',
-           '2026-09-16 10:10:00','2026-09-17 11:00:00','navigator@carepathfl.org'
+           '2026-09-16 10:10:00','2026-09-17 11:00:00','navigator@example.org'
 
     UNION ALL SELECT 'rosalie.jean@example.com','FL-LMHC-10788','DECLINED',
            'Following up on a referral from my primary care office.','TEXT',
-           '2026-09-18 14:33:00','2026-09-19 09:12:00','intake@carepathfl.org'
+           '2026-09-18 14:33:00','2026-09-19 09:12:00','intake@example.org'
 
     UNION ALL SELECT 'tyler.brandt@example.com','FL-LMHC-13512','PENDING',
            'Telehealth only please, I work irregular hours.','EMAIL',
@@ -881,21 +556,16 @@ WHERE r.status <> 'PENDING';
 --   (SELECT COUNT(*) FROM providers)          AS providers,
 --   (SELECT COUNT(*) FROM referral_requests)  AS referrals;
 
--- 4. The flagship search: Spanish-speaking, Medicaid, PTSD, accepting.
+-- 4. The flagship search: Medicaid, accepting, in one county.
 -- SELECT DISTINCT p.id, p.first_name, p.last_name, p.credential,
 --        o.name AS organization, c.name AS county, p.open_slots
 -- FROM providers p
--- JOIN organizations o         ON o.id  = p.organization_id
--- JOIN counties c              ON c.id  = o.county_id
--- JOIN provider_specialties ps ON ps.provider_id = p.id
--- JOIN specialties s           ON s.id  = ps.specialty_id
--- JOIN provider_languages pl   ON pl.provider_id = p.id
--- JOIN languages l             ON l.id  = pl.language_id
--- JOIN provider_insurance pi   ON pi.provider_id = p.id
--- JOIN insurance_plans ip      ON ip.id = pi.insurance_plan_id
--- WHERE s.name = 'PTSD & Trauma'
---   AND l.name = 'Spanish'
---   AND ip.plan_type = 'MEDICAID'
+-- JOIN organizations o       ON o.id  = p.organization_id
+-- JOIN counties c            ON c.id  = o.county_id
+-- JOIN provider_insurance pi ON pi.provider_id = p.id
+-- JOIN insurance_plans ip    ON ip.id = pi.insurance_plan_id
+-- WHERE ip.plan_type = 'MEDICAID'
+--   AND c.name = 'Miami-Dade'
 --   AND p.accepting_new_clients = TRUE
 --   AND p.is_active = TRUE;
 

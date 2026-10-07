@@ -4,8 +4,8 @@ import { Button, Checkbox, Field, Select } from './ui'
  * The search controls.
  *
  * Every filter describes what the PERSON wants - county, insurance,
- * language, focus area, modality. None of them ask anything clinical.
- * That is a deliberate boundary (ADR-0004): this app never holds health
+ * modality, availability. None of them ask anything clinical. That is a
+ * deliberate boundary (ADR-0004): this app never holds health
  * information, so it never asks for any.
  *
  * State lives in SearchPage's reducer, not here - this component only
@@ -27,16 +27,6 @@ export default function SearchFilters({ filters, catalog, onChange, onToggle, on
           />
         </Field>
 
-        <Field label="What you need help with" id="f-specialty">
-          <Select
-            id="f-specialty"
-            value={filters.specialtyId}
-            onChange={set('specialtyId')}
-            options={catalog.specialties}
-            anyLabel="Any focus area"
-          />
-        </Field>
-
         <Field label="Your insurance" id="f-insurance">
           <Select
             id="f-insurance"
@@ -44,26 +34,6 @@ export default function SearchFilters({ filters, catalog, onChange, onToggle, on
             onChange={set('insurancePlanId')}
             options={catalog.insurancePlans}
             anyLabel="Any coverage"
-          />
-        </Field>
-
-        <Field label="Language" id="f-language">
-          <Select
-            id="f-language"
-            value={filters.languageId}
-            onChange={set('languageId')}
-            options={catalog.languages}
-            anyLabel="Any language"
-          />
-        </Field>
-
-        <Field label="Who it's for" id="f-population">
-          <Select
-            id="f-population"
-            value={filters.populationId}
-            onChange={set('populationId')}
-            options={catalog.populations}
-            anyLabel="Anyone"
           />
         </Field>
       </div>

@@ -106,22 +106,7 @@ export default function ProviderDetailPage() {
           </Card>
 
           <Card>
-            <h2>Focus areas</h2>
-            <div className="tags">
-              {provider.specialties.map((s) => <Tag key={s}>{s}</Tag>)}
-            </div>
-
-            <h2 style={{ marginTop: 'var(--s-5)' }}>Works with</h2>
-            <div className="tags">
-              {provider.populations.map((p) => <Tag key={p}>{p}</Tag>)}
-            </div>
-
-            <h2 style={{ marginTop: 'var(--s-5)' }}>Languages</h2>
-            <div className="tags">
-              {provider.languages.map((l) => <Tag key={l}>{l}</Tag>)}
-            </div>
-
-            <h2 style={{ marginTop: 'var(--s-5)' }}>Accepted coverage</h2>
+            <h2>Accepted coverage</h2>
             <div className="tags">
               {provider.insurancePlans.length === 0
                 ? <span className="muted small">No plans listed.</span>

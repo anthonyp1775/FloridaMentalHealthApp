@@ -10,7 +10,6 @@ import SearchPage from './pages/SearchPage'
 import ProviderDetailPage from './pages/ProviderDetailPage'
 import SavedPage from './pages/SavedPage'
 import MyReferralsPage from './pages/MyReferralsPage'
-import ProfilePage from './pages/ProfilePage'
 import AdminQueuePage from './pages/AdminQueuePage'
 import AdminProvidersPage from './pages/AdminProvidersPage'
 import ReportsPage from './pages/ReportsPage'
@@ -34,7 +33,6 @@ export default function App() {
               <Route path="providers/:id" element={<ProviderDetailPage />} />
               <Route path="saved" element={<SavedPage />} />
               <Route path="referrals" element={<MyReferralsPage />} />
-              <Route path="profile" element={<ProfilePage />} />
 
               <Route
                 path="admin/queue"

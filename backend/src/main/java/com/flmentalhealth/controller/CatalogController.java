@@ -24,7 +24,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api")
-@Tag(name = "Catalog", description = "Counties, specialties, languages, insurance plans and organizations")
+@Tag(name = "Catalog", description = "Counties, insurance plans and organizations")
 public class CatalogController {
 
     private final CatalogService catalogService;
@@ -39,24 +39,6 @@ public class CatalogController {
     @Operation(summary = "All 67 Florida counties with region and managing entity")
     public List<CatalogDtos.CountyResponse> counties() {
         return catalogService.listCounties();
-    }
-
-    @GetMapping("/specialties")
-    @Operation(summary = "Clinical focus areas a provider can be matched on")
-    public List<CatalogDtos.SpecialtyResponse> specialties() {
-        return catalogService.listSpecialties();
-    }
-
-    @GetMapping("/populations")
-    @Operation(summary = "Age groups and units of treatment a provider serves")
-    public List<CatalogDtos.PopulationResponse> populations() {
-        return catalogService.listPopulations();
-    }
-
-    @GetMapping("/languages")
-    @Operation(summary = "Languages providers offer services in")
-    public List<CatalogDtos.LanguageResponse> languages() {
-        return catalogService.listLanguages();
     }
 
     @GetMapping("/insurance-plans")
@@ -89,16 +71,6 @@ public class CatalogController {
      * prepends the prefix itself, which is why role names are stored
      * WITH it in the database and mapped across unchanged.
      */
-    @PostMapping("/specialties")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Add a clinical focus area")
-    public ResponseEntity<CatalogDtos.SpecialtyResponse> createSpecialty(
-            @Valid @RequestBody CatalogDtos.SpecialtyRequest request) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(catalogService.createSpecialty(request));
-    }
-
     @PostMapping("/organizations")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Add a clinic or agency")

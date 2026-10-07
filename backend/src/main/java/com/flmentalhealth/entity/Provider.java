@@ -146,42 +146,18 @@ public class Provider {
     private LocalDateTime updatedAt;
 
     /*
-     * ---------- the four many-to-many relationships ----------
+     * ---------- the many-to-many relationship ----------
      *
-     * Provider is the OWNING side of all four - it declares the
-     * @JoinTable, so Hibernate writes join rows when these collections
-     * change. The lookup entities carry no reverse collection, which
-     * keeps them simple: nothing needs to ask "which providers speak
-     * Spanish?" as an object graph, because that question is a query.
+     * Provider is the OWNING side - it declares the @JoinTable, so
+     * Hibernate writes join rows when this collection changes.
+     * InsurancePlan carries no reverse collection, which keeps it
+     * simple: nothing needs to ask "which providers take Medicaid?" as
+     * an object graph, because that question is a query.
      *
-     * Set rather than List: a provider cannot have the same specialty
-     * twice, and Set gives Hibernate much better delete behavior on
-     * join tables than List does.
+     * Set rather than List: a provider cannot hold the same plan twice,
+     * and Set gives Hibernate much better delete behavior on join
+     * tables than List does.
      */
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "provider_specialties",
-            joinColumns = @JoinColumn(name = "provider_id"),
-            inverseJoinColumns = @JoinColumn(name = "specialty_id")
-    )
-    private Set<Specialty> specialties = new HashSet<>();
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "provider_populations",
-            joinColumns = @JoinColumn(name = "provider_id"),
-            inverseJoinColumns = @JoinColumn(name = "population_id")
-    )
-    private Set<Population> populations = new HashSet<>();
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "provider_languages",
-            joinColumns = @JoinColumn(name = "provider_id"),
-            inverseJoinColumns = @JoinColumn(name = "language_id")
-    )
-    private Set<Language> languages = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -245,9 +221,6 @@ public class Provider {
 
     // ---------- collection helpers ----------
 
-    public void addSpecialty(Specialty s)      { specialties.add(s); }
-    public void addPopulation(Population p)    { populations.add(p); }
-    public void addLanguage(Language l)        { languages.add(l); }
     public void addInsurancePlan(InsurancePlan p) { insurancePlans.add(p); }
 
     @Override

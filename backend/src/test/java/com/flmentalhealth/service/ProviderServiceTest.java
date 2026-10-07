@@ -53,9 +53,6 @@ class ProviderServiceTest {
 
     @Mock private ProviderRepository providerRepository;
     @Mock private OrganizationRepository organizationRepository;
-    @Mock private SpecialtyRepository specialtyRepository;
-    @Mock private PopulationRepository populationRepository;
-    @Mock private LanguageRepository languageRepository;
     @Mock private InsurancePlanRepository insurancePlanRepository;
     @Mock private SavedProviderRepository savedProviderRepository;
     @Mock private UserRepository userRepository;
@@ -81,7 +78,7 @@ class ProviderServiceTest {
                 "Priya", "Raman", credential, licenseNumber,
                 1L, "Example bio.", 9,
                 true, true, accepting, openSlots, 12,
-                null, null, null, null);
+                null);
     }
 
     // =================================================================
@@ -93,11 +90,11 @@ class ProviderServiceTest {
         @DisplayName("passes every filter through and maps to the summary shape")
         void search_mapsSummary() {
             Page<Provider> page = new PageImpl<>(List.of(provider), pageable, 1);
-            when(providerRepository.search(13L, 2L, 3L, 4L, 5L,
-                    true, true, pageable)).thenReturn(page);
+            when(providerRepository.search(13L, 4L, true, true, pageable))
+                    .thenReturn(page);
 
             Page<ProviderDtos.Summary> result = service.search(
-                    new ProviderDtos.SearchCriteria(13L, 2L, 3L, 4L, 5L, true, true),
+                    new ProviderDtos.SearchCriteria(13L, 4L, true, true),
                     pageable);
 
             assertThat(result.getContent()).hasSize(1);
@@ -116,7 +113,7 @@ class ProviderServiceTest {
         /**
          * A bare /api/providers/search sends no parameters at all, so
          * every criterion arrives null. The flag must resolve to false,
-         * and the other six must stay null so the query leaves their
+         * and the other three must stay null so the query leaves their
          * clauses off.
          *
          * This is the regression test for a real 400 in development:
@@ -126,44 +123,42 @@ class ProviderServiceTest {
         @Test
         @DisplayName("an absent acceptingOnly means false, and absent filters stay null")
         void search_absentAcceptingOnlyMeansFalse() {
-            when(providerRepository.search(isNull(), isNull(), isNull(), isNull(),
-                    isNull(), isNull(), eq(false), eq(pageable)))
+            when(providerRepository.search(isNull(), isNull(), isNull(),
+                    eq(false), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(provider), pageable, 1));
 
             Page<ProviderDtos.Summary> result = service.search(
-                    new ProviderDtos.SearchCriteria(
-                            null, null, null, null, null, null, null),
+                    new ProviderDtos.SearchCriteria(null, null, null, null),
                     pageable);
 
             assertThat(result.getContent()).hasSize(1);
-            verify(providerRepository).search(isNull(), isNull(), isNull(), isNull(),
-                    isNull(), isNull(), eq(false), eq(pageable));
+            verify(providerRepository).search(isNull(), isNull(), isNull(),
+                    eq(false), eq(pageable));
         }
 
         @Test
         @DisplayName("an explicit acceptingOnly=false is still false, not null")
         void search_explicitFalseStaysFalse() {
-            when(providerRepository.search(isNull(), isNull(), isNull(), isNull(),
-                    isNull(), isNull(), eq(false), eq(pageable)))
+            when(providerRepository.search(isNull(), isNull(), isNull(),
+                    eq(false), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
             service.search(new ProviderDtos.SearchCriteria(
-                    null, null, null, null, null, null, false), pageable);
+                    null, null, null, false), pageable);
 
-            verify(providerRepository).search(isNull(), isNull(), isNull(), isNull(),
-                    isNull(), isNull(), eq(false), eq(pageable));
+            verify(providerRepository).search(isNull(), isNull(), isNull(),
+                    eq(false), eq(pageable));
         }
 
         @Test
         @DisplayName("no matches is an empty page, not an exception")
         void search_emptyResultIsNotAnError() {
-            when(providerRepository.search(any(), any(), any(), any(), any(),
-                    any(), anyBoolean(), eq(pageable)))
+            when(providerRepository.search(any(), any(), any(),
+                    anyBoolean(), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
             Page<ProviderDtos.Summary> result = service.search(
-                    new ProviderDtos.SearchCriteria(99L, null, null, null, null,
-                            null, true),
+                    new ProviderDtos.SearchCriteria(99L, null, null, true),
                     pageable);
 
             assertThat(result.getContent()).isEmpty();
@@ -177,27 +172,21 @@ class ProviderServiceTest {
     class GetById {
 
         @Test
-        @DisplayName("returns full detail with collections sorted by name")
+        @DisplayName("returns full detail with the plan list sorted by name")
         void getById_sortsCollectionNames() {
             // Added out of order, and stored in a HashSet, so the sort
             // in the mapper is what makes the response stable.
-            provider.addSpecialty(TestFixtures.specialty(1L, "PTSD & Trauma"));
-            provider.addSpecialty(TestFixtures.specialty(2L, "Anxiety Disorders"));
-            provider.addLanguage(TestFixtures.language(1L, "Spanish"));
-            provider.addLanguage(TestFixtures.language(2L, "English"));
             provider.addInsurancePlan(TestFixtures.plan(
-                    1L, "Example Medicaid MCO", InsurancePlan.PlanType.MEDICAID));
+                    2L, "Example Medicaid MCO", InsurancePlan.PlanType.MEDICAID));
+            provider.addInsurancePlan(TestFixtures.plan(
+                    1L, "Example Commercial PPO", InsurancePlan.PlanType.COMMERCIAL));
 
             when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
 
             ProviderDtos.Response response = service.getById(1L);
 
-            assertThat(response.specialties())
-                    .containsExactly("Anxiety Disorders", "PTSD & Trauma");
-            assertThat(response.languages())
-                    .containsExactly("English", "Spanish");
             assertThat(response.insurancePlans())
-                    .containsExactly("Example Medicaid MCO");
+                    .containsExactly("Example Commercial PPO", "Example Medicaid MCO");
             assertThat(response.county()).isEqualTo("Miami-Dade");
             assertThat(response.orgType())
                     .isEqualTo("COMMUNITY_MENTAL_HEALTH_CENTER");
@@ -339,9 +328,8 @@ class ProviderServiceTest {
             assertThat(response.id()).isEqualTo(77L);
             assertThat(response.credential()).isEqualTo("LCSW");
             assertThat(response.openSlots()).isEqualTo(4);
-            // Empty collections come back as empty lists, never null.
-            assertThat(response.specialties()).isEmpty();
-            assertThat(response.populations()).isEmpty();
+            // An empty collection comes back as an empty list, never null.
+            assertThat(response.insurancePlans()).isEmpty();
         }
 
         @Test
@@ -386,24 +374,24 @@ class ProviderServiceTest {
         /**
          * Silently dropping an id that does not exist would let a typo
          * quietly remove a filter from a provider's profile - they would
-         * stop appearing in searches for a specialty they still hold.
+         * stop appearing in searches for a plan they still accept.
          */
         @Test
-        @DisplayName("an unknown specialty id fails loudly instead of being dropped")
-        void create_failsOnUnknownSpecialtyId() {
+        @DisplayName("an unknown insurance plan id fails loudly instead of being dropped")
+        void create_failsOnUnknownInsurancePlanId() {
             when(providerRepository.existsByLicenseNumber("SW9003")).thenReturn(false);
             when(organizationRepository.findById(1L))
                     .thenReturn(Optional.of(TestFixtures.organization()));
-            when(specialtyRepository.findById(888L)).thenReturn(Optional.empty());
+            when(insurancePlanRepository.findById(888L)).thenReturn(Optional.empty());
 
-            ProviderDtos.Request withBadSpecialty = new ProviderDtos.Request(
+            ProviderDtos.Request withBadPlan = new ProviderDtos.Request(
                     "Priya", "Raman", "LCSW", "SW9003", 1L, null, 3,
                     true, true, true, 2, 10,
-                    List.of(888L), null, null, null);
+                    List.of(888L));
 
-            assertThatThrownBy(() -> service.create(withBadSpecialty))
+            assertThatThrownBy(() -> service.create(withBadPlan))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("Specialty 888");
+                    .hasMessageContaining("Insurance plan 888");
         }
 
         @Test
@@ -434,26 +422,31 @@ class ProviderServiceTest {
         }
 
         @Test
-        @DisplayName("update replaces collections rather than merging them")
+        @DisplayName("update replaces the plan list rather than merging it")
         void update_replacesCollections() {
-            provider.addSpecialty(TestFixtures.specialty(1L, "PTSD & Trauma"));
+            provider.addInsurancePlan(TestFixtures.plan(
+                    1L, "Example Medicaid MCO", InsurancePlan.PlanType.MEDICAID));
 
             when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
             when(organizationRepository.findById(1L))
                     .thenReturn(Optional.of(TestFixtures.organization()));
-            when(specialtyRepository.findById(2L))
-                    .thenReturn(Optional.of(TestFixtures.specialty(2L, "Depression")));
+            when(insurancePlanRepository.findById(2L))
+                    .thenReturn(Optional.of(TestFixtures.plan(
+                            2L, "Example Commercial PPO",
+                            InsurancePlan.PlanType.COMMERCIAL)));
 
             ProviderDtos.Request swap = new ProviderDtos.Request(
                     "Priya", "Raman", "PSYCHIATRIST", "ME1", 1L, null, 9,
                     true, true, true, 3, 12,
-                    List.of(2L), null, null, null);
+                    List.of(2L));
 
             ProviderDtos.Response response = service.update(1L, swap);
 
-            // PTSD is gone because it was left out of the request. That
-            // is what PUT means - the body is the complete intended set.
-            assertThat(response.specialties()).containsExactly("Depression");
+            // The Medicaid plan is gone because it was left out of the
+            // request. That is what PUT means - the body is the complete
+            // intended set.
+            assertThat(response.insurancePlans())
+                    .containsExactly("Example Commercial PPO");
         }
 
         /**

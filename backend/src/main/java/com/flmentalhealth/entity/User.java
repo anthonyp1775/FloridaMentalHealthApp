@@ -80,11 +80,6 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    /** One-to-one, inverse side. Only ROLE_USER accounts have a profile. */
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,
-              orphanRemoval = true, fetch = FetchType.LAZY)
-    private ClientProfile profile;
-
     public void addRole(Role role)    { this.roles.add(role); }
     public void removeRole(Role role) { this.roles.remove(role); }
 
@@ -104,7 +99,7 @@ public class User {
         return Objects.hash(id);
     }
 
-    /** Roles and profile excluded - including them would trigger loads. */
+    /** Roles excluded - including them would trigger a load. */
     @Override
     public String toString() {
         return "User{id=" + id + ", email='" + email + "'}";

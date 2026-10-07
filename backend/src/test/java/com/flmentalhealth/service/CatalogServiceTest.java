@@ -5,7 +5,6 @@ import com.flmentalhealth.dto.CatalogDtos;
 import com.flmentalhealth.entity.County;
 import com.flmentalhealth.entity.InsurancePlan;
 import com.flmentalhealth.entity.Organization;
-import com.flmentalhealth.entity.Specialty;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateResourceException;
 import com.flmentalhealth.exception.ApiExceptions.ResourceNotFoundException;
 import com.flmentalhealth.repository.*;
@@ -35,9 +34,9 @@ import static org.mockito.Mockito.when;
 /**
  * CatalogService - the reference data the search filters are built from.
  *
- * Six near-identical read surfaces plus two write paths. The reads look
- * trivial, and mostly are, but two things about them matter enough to
- * pin down: they come back SORTED (a dropdown that reorders itself
+ * Three near-identical read surfaces plus two write paths. The reads
+ * look trivial, and mostly are, but two things about them matter enough
+ * to pin down: they come back SORTED (a dropdown that reorders itself
  * between page loads is unusable), and counties carry the region and
  * Managing Entity that make this directory specific to Florida rather
  * than generic.
@@ -47,9 +46,6 @@ import static org.mockito.Mockito.when;
 class CatalogServiceTest {
 
     @Mock private CountyRepository countyRepository;
-    @Mock private SpecialtyRepository specialtyRepository;
-    @Mock private PopulationRepository populationRepository;
-    @Mock private LanguageRepository languageRepository;
     @Mock private InsurancePlanRepository insurancePlanRepository;
     @Mock private OrganizationRepository organizationRepository;
 
@@ -93,43 +89,6 @@ class CatalogServiceTest {
         verify(countyRepository).findAll(captor.capture());
         assertThat(captor.getValue().getOrderFor("name")).isNotNull();
         assertThat(captor.getValue().getOrderFor("name").isAscending()).isTrue();
-    }
-
-    @Test
-    @DisplayName("specialties come back sorted by name")
-    void listSpecialties_sortedByName() {
-        when(specialtyRepository.findAll(any(Sort.class))).thenReturn(List.of(
-                TestFixtures.specialty(1L, "Anxiety Disorders"),
-                TestFixtures.specialty(2L, "PTSD & Trauma")));
-
-        List<CatalogDtos.SpecialtyResponse> result = service.listSpecialties();
-
-        assertThat(result).extracting(CatalogDtos.SpecialtyResponse::name)
-                .containsExactly("Anxiety Disorders", "PTSD & Trauma");
-    }
-
-    @Test
-    @DisplayName("languages expose the ISO code alongside the name")
-    void listLanguages_includesIsoCode() {
-        when(languageRepository.findAll(any(Sort.class))).thenReturn(List.of(
-                TestFixtures.language(1L, "Spanish")));
-
-        List<CatalogDtos.LanguageResponse> result = service.listLanguages();
-
-        assertThat(result.get(0).name()).isEqualTo("Spanish");
-        assertThat(result.get(0).isoCode()).isEqualTo("sp");
-    }
-
-    @Test
-    @DisplayName("populations expose the age range")
-    void listPopulations_includesAgeRange() {
-        when(populationRepository.findAll()).thenReturn(List.of(
-                TestFixtures.population(1L, "Adults")));
-
-        List<CatalogDtos.PopulationResponse> result = service.listPopulations();
-
-        assertThat(result.get(0).name()).isEqualTo("Adults");
-        assertThat(result.get(0).ageRange()).isEqualTo("18+");
     }
 
     /**
@@ -184,40 +143,6 @@ class CatalogServiceTest {
     // =================================================================
     // Writes
     // =================================================================
-
-    @Test
-    @DisplayName("a specialty name already in use is a 409")
-    void createSpecialty_rejectsDuplicateName() {
-        when(specialtyRepository.existsByName("PTSD & Trauma")).thenReturn(true);
-
-        var req = new CatalogDtos.SpecialtyRequest("PTSD & Trauma", "desc");
-        assertThatThrownBy(() -> service.createSpecialty(req))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("already exists");
-
-        verify(specialtyRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("creating a specialty returns it with its new id")
-    void createSpecialty_savesAndReturns() {
-        when(specialtyRepository.existsByName("Perinatal Mental Health"))
-                .thenReturn(false);
-        when(specialtyRepository.save(any(Specialty.class)))
-                .thenAnswer(invocation -> {
-                    Specialty saved = invocation.getArgument(0);
-                    saved.setId(21L);
-                    return saved;
-                });
-
-        CatalogDtos.SpecialtyResponse response = service.createSpecialty(
-                new CatalogDtos.SpecialtyRequest(
-                        "Perinatal Mental Health", "Pregnancy and postpartum"));
-
-        assertThat(response.id()).isEqualTo(21L);
-        assertThat(response.name()).isEqualTo("Perinatal Mental Health");
-        assertThat(response.description()).isEqualTo("Pregnancy and postpartum");
-    }
 
     @Test
     @DisplayName("an unknown county id is a 404, not a null foreign key")

@@ -3,22 +3,14 @@ package com.flmentalhealth.dto;
 import jakarta.validation.constraints.*;
 
 /**
- * Reference data the search filters are built from: counties,
- * specialties, populations, languages, insurance plans, organizations.
- * All read-heavy and near-static; writes are ADMIN only.
+ * Reference data the search filters are built from: counties, insurance
+ * plans and organizations. All read-heavy and near-static; writes are
+ * ADMIN only.
  */
 public class CatalogDtos {
 
     public record CountyResponse(Long id, String name, String region,
                                  String managingEntity) {}
-
-    public record SpecialtyRequest(@NotBlank @Size(max = 80) String name,
-                                   @Size(max = 255) String description) {}
-    public record SpecialtyResponse(Long id, String name, String description) {}
-
-    public record PopulationResponse(Long id, String name, String ageRange) {}
-
-    public record LanguageResponse(Long id, String name, String isoCode) {}
 
     public record InsurancePlanResponse(Long id, String name, String planType) {}
 

@@ -30,8 +30,8 @@ public interface ProviderRepository extends JpaRepository<Provider, Long> {
      * ":param IS NULL OR ...". One query instead of a combinatorial
      * explosion of method names.
      *
-     * DISTINCT matters: joining four collection tables multiplies rows,
-     * so without it a provider matching two specialties appears twice.
+     * DISTINCT matters: joining the insurance collection multiplies
+     * rows, so without it a provider accepting two plans appears twice.
      */
     /*
      * Fetches organization and county in the SAME query. Without
@@ -44,31 +44,15 @@ public interface ProviderRepository extends JpaRepository<Provider, Long> {
     @Query("""
            SELECT DISTINCT p FROM Provider p
            JOIN p.organization o
-           LEFT JOIN p.specialties s
-           LEFT JOIN p.languages l
            LEFT JOIN p.insurancePlans ip
-           LEFT JOIN p.populations pop
            WHERE p.active = true
              AND (:countyId    IS NULL OR o.county.id = :countyId)
-             AND (:specialtyId IS NULL OR s.id        = :specialtyId)
-             AND (:languageId  IS NULL OR l.id        = :languageId)
              AND (:insuranceId IS NULL OR ip.id       = :insuranceId)
-             AND (:populationId IS NULL OR pop.id     = :populationId)
              AND (:telehealth  IS NULL OR p.offersTelehealth = :telehealth)
              AND (:acceptingOnly = false OR p.acceptingNewClients = true)
            """)
-    /*
-     * Eight parameters, and every one is a bind variable the JPQL above
-     * requires - one per optional filter, plus Pageable. Collapsing them
-     * into a criteria object would mean SpEL expressions in the query
-     * and a less readable one at that.
-     */
-    @SuppressWarnings("java:S107")
     Page<Provider> search(@Param("countyId")     Long countyId,
-                          @Param("specialtyId")  Long specialtyId,
-                          @Param("languageId")   Long languageId,
                           @Param("insuranceId")  Long insuranceId,
-                          @Param("populationId") Long populationId,
                           @Param("telehealth")   Boolean telehealth,
                           @Param("acceptingOnly") boolean acceptingOnly,
                           Pageable pageable);
