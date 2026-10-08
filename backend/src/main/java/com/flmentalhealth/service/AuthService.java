@@ -1,6 +1,6 @@
 package com.flmentalhealth.service;
 
-import com.flmentalhealth.dto.AuthDtos;
+import com.flmentalhealth.dto.Dtos.AuthDtos;
 import com.flmentalhealth.entity.Role;
 import com.flmentalhealth.entity.User;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateResourceException;

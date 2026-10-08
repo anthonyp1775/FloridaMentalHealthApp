@@ -1,7 +1,7 @@
 package com.flmentalhealth.service;
 
 import com.flmentalhealth.TestFixtures;
-import com.flmentalhealth.dto.ReferralDtos;
+import com.flmentalhealth.dto.Dtos.ReferralDtos;
 import com.flmentalhealth.entity.Provider;
 import com.flmentalhealth.entity.ReferralRequest;
 import com.flmentalhealth.entity.ReferralRequest.Status;

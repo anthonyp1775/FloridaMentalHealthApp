@@ -1,0 +1,29 @@
+meta {
+  name: My referrals only
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/referrals/mine
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  // There is no user id in the request. It comes from the token, so
+  // there is no parameter anyone could change to read another
+  // person's referrals.
+  test("newest first", function() {
+    const dates = res.body.content.map(r => new Date(r.submittedAt).getTime());
+    const sorted = [...dates].sort((a, b) => b - a);
+    expect(dates).to.deep.equal(sorted);
+  });
+}

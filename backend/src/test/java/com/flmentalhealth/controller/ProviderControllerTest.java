@@ -1,7 +1,7 @@
 package com.flmentalhealth.controller;
 
 import com.flmentalhealth.TestFixtures;
-import com.flmentalhealth.dto.ProviderDtos;
+import com.flmentalhealth.dto.Dtos.ProviderDtos;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateResourceException;
 import com.flmentalhealth.exception.ApiExceptions.ResourceNotFoundException;
 import com.flmentalhealth.service.ProviderService;

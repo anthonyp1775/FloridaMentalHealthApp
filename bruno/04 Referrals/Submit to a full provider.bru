@@ -1,0 +1,42 @@
+meta {
+  name: Submit to a full provider
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/referrals
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "providerId": {{providerAtCapacity}},
+    "message": "Asking about availability",
+    "preferredContact": "EMAIL"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setEnvVar("fullReferralId", res.body.id);
+  }
+}
+
+tests {
+  // Submitting is always allowed. Capacity is checked at REVIEW time,
+  // not submission time - the situation can change in between.
+  test("201 Created even though the provider is full", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("starts PENDING", function() {
+    expect(res.body.status).to.equal("PENDING");
+  });
+}

@@ -1,5 +1,4 @@
 # Florida Mental Health App
-[![Quality gate](http://localhost:9000/api/project_badges/quality_gate?project=florida-mental-health-app&token=sqb_f979715eb20ab8050062713b7b20f61c6d1f9a54)](http://localhost:9000/dashboard?id=florida-mental-health-app)
 
 A mental health navigation and referral system for the state of Florida.
 
@@ -61,11 +60,29 @@ Validation, springdoc-openapi 2.8.6, HikariCP, Maven
 
 **Database** — MySQL 8
 
-**Testing** — JUnit 5, Mockito, AssertJ, MockMvc, H2, JaCoCo, Postman,
-SonarQube
+**Testing** — JUnit 5, Mockito 5, AssertJ, MockMvc, H2, JaCoCo 0.8.14,
+Bruno, SonarQube
 
 In one line: a React single-page app talking over REST to a Spring Boot
 API, backed by MySQL, secured with stateless JWT authentication.
+
+---
+
+## Prerequisites
+
+| | Version | Check |
+|---|---|---|
+| JDK | **25** | `java -version` |
+| Maven | 3.9+ | `mvn -version` |
+| Node.js | 18+ | `node -v` |
+| MySQL | 8 | — |
+
+`mvn -version` must report Java 25. The build sets
+`maven.compiler.release=25`, so an older JDK fails at compile with
+*invalid target release*. Maven takes its JDK from `JAVA_HOME`, which
+is not necessarily the one IntelliJ uses.
+
+There is no Maven wrapper in this repository — use `mvn`, not `./mvnw`.
 
 ---
 
@@ -73,9 +90,25 @@ API, backed by MySQL, secured with stateless JWT authentication.
 
 ### 1. Database
 
-Open `backend/src/main/resources/db/schema.sql` in MySQL Workbench and
-run it. Then generate a BCrypt hash, paste it over every
-`PASTE_BCRYPT_HASH_HERE` in `seed.sql`, and run that too.
+Run `backend/src/main/resources/db/schema.sql` in MySQL Workbench.
+
+`seed.sql` ships with `PASTE_BCRYPT_HASH_HERE` in place of the demo
+users' passwords — a real hash is deliberately not committed. To
+produce one using nothing but this project:
+
+1. Start the backend (step 2). `DataSeeder` creates `ROLE_USER` and
+   `ROLE_ADMIN` on startup, which is all registration needs.
+2. Open `http://localhost:8080/swagger-ui.html` and
+   `POST /api/auth/register` with any email and the password you intend
+   to demo with.
+3. `SELECT password FROM users WHERE email = '<that email>';` — copy
+   the `$2a$11$...` string.
+4. Paste it over **every** `PASTE_BCRYPT_HASH_HERE` in `seed.sql`.
+5. `DELETE FROM users WHERE email = '<that email>';`, then run
+   `seed.sql`.
+
+The hash is self-describing, so any BCrypt hash of your chosen password
+works; this route just avoids needing a separate tool.
 
 Verification queries are commented at the bottom of both files. Queries
 1 and 2 in each should return **zero rows**.
@@ -85,7 +118,7 @@ Verification queries are commented at the bottom of both files. Queries
 ```bash
 cd backend
 # set your MySQL password in src/main/resources/application-dev.properties
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 Runs on http://localhost:8080 — API docs at `/swagger-ui.html`
@@ -100,13 +133,74 @@ npm run dev
 
 Runs on http://localhost:5173, proxying `/api` to the backend.
 
+### Signing in
+
+Both accounts use whichever password you hashed above.
+
+| | Email | Sees |
+|---|---|---|
+| Person seeking care | `alicia.moreno@example.com` | Search, Saved, My Referrals, Profile |
+| Navigator (admin) | `navigator@carepathfl.org` | ...plus Queue, Directory, Reports |
+
+`/resources` — the statewide crisis resources page — is reachable
+without logging in, by design.
+
 ### Tests and coverage
 
 ```bash
 cd backend
-./mvnw clean test
-# report: target/site/jacoco/index.html
+mvn clean verify
 ```
+
+**267 tests across 16 classes.** Surefire reports executed cases; the
+number of test *methods* is lower because the entity identity contract
+and two entity classes are parameterized — the identity contract alone
+runs 6 methods across 13 entities.
+
+Coverage report: `target/site/jacoco/index.html` — **above 80% line
+coverage**. The uncovered remainder is mostly `config`, which is Spring
+startup wiring that only executes when the application boots.
+
+MySQL does **not** need to be running: every test uses mocked
+repositories or standalone MockMvc, and none loads a Spring context.
+
+### Static analysis
+
+With a SonarQube server running on `:9000`, from `backend/`, as one
+line:
+
+```
+mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar "-Dsonar.projectKey=florida-mental-health-app" "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+```
+
+Full setup, the findings and how each was resolved are in
+[`docs/sonarqube.md`](docs/sonarqube.md). Three rules are suppressed in
+code rather than fixed; each carries a comment explaining the
+constraint — jjwt's `java.util.Date` API, the search query's bind
+variables, and a boxing hint whose "fix" would turn a null id into a
+bare `NullPointerException`.
+
+---
+
+## Documentation
+
+| | |
+|---|---|
+| [`docs/project-proposal.md`](docs/project-proposal.md) | The problem and the case for building this |
+| [`docs/architecture.md`](docs/architecture.md) | How the pieces fit together |
+| [`docs/api-design.md`](docs/api-design.md) | All 32 endpoints — roles, schemas, status codes |
+| [`docs/erd.md`](docs/erd.md) | The data model, and why it is shaped this way |
+| [`docs/erd-walkthrough.md`](docs/erd-walkthrough.md) | How to narrate the ERD out loud |
+| [`docs/code-map.md`](docs/code-map.md) | Every folder, in the order a request passes through it |
+| [`docs/testing.md`](docs/testing.md) | The test strategy and its one coverage boundary |
+| [`docs/sonarqube.md`](docs/sonarqube.md) | Static analysis setup and findings |
+| [`docs/adr/`](docs/adr/) | Five decisions, with the alternatives rejected |
+| [`docs/demo-script.md`](docs/demo-script.md) | Product demo — what the app does |
+| [`docs/walkthrough.md`](docs/walkthrough.md) | Architecture demo — one request at a time, both tiers |
+| [`docs/backend-walkthrough.md`](docs/backend-walkthrough.md) | Server side only — six clicks to the lines they hit (3 min) |
+| [`docs/backend-walkthrough-detailed.md`](docs/backend-walkthrough-detailed.md) | The same, line by line (10 min) |
+| [`docs/ai-usage.md`](docs/ai-usage.md) | How AI was used, and the six times it was wrong |
+| [`bruno/`](bruno/) | API integration suite — 37 requests, 86 assertions |
 
 ---
 
@@ -175,6 +269,6 @@ rather than pretended.
 | 2 | `schema.sql` + `seed.sql`, entities, repositories |
 | 3 | DTOs, services, controllers, exception handler |
 | 4 | React app, routing, API integration |
-| 5 | JWT security, role rules, tests to 70%+ |
+| 5 | JWT security, role rules, tests past 80% |
 | 6 | *(AWS deployment — out of scope)* |
 | 7 | Docs, presentation, peer review |

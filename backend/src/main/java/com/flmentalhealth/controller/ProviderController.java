@@ -1,6 +1,6 @@
 package com.flmentalhealth.controller;
 
-import com.flmentalhealth.dto.ProviderDtos;
+import com.flmentalhealth.dto.Dtos.ProviderDtos;
 import com.flmentalhealth.security.UserPrincipal;
 import com.flmentalhealth.service.ProviderService;
 import io.swagger.v3.oas.annotations.Operation;

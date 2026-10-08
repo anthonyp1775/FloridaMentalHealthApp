@@ -1,6 +1,6 @@
 package com.flmentalhealth.service;
 
-import com.flmentalhealth.dto.ReportDtos;
+import com.flmentalhealth.dto.Dtos.ReportDtos;
 import com.flmentalhealth.entity.InsurancePlan;
 import com.flmentalhealth.entity.ReferralRequest.Status;
 import com.flmentalhealth.repository.ProviderRepository;
@@ -27,9 +27,15 @@ import static org.mockito.Mockito.when;
  * ReportService - the numbers a navigator actually uses.
  *
  * The access gap is the report that matters: not a count of rows, but
- * the distance between how many clinicians take commercial insurance
- * and how many take Medicaid. It falls out of data the directory
- * already holds rather than requiring a separate survey.
+ * how many clinicians currently accepting clients take each kind of
+ * coverage. It falls out of data the directory already holds rather
+ * than requiring a separate survey.
+ *
+ * These tests feed the query a fixed distribution and assert the
+ * mapping, deliberately without assuming which plan type comes out on
+ * top. A test written around "Medicaid should be lowest" would be
+ * asserting a belief about the world instead of the behaviour of the
+ * code, and would fail the moment the data changed.
  *
  * The subtle test here is referralSummary_toDateIncludesTheWholeDay.
  * An inclusive end date that is treated as midnight silently drops

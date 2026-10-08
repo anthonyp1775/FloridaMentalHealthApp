@@ -1,0 +1,23 @@
+meta {
+  name: Unknown endpoint is 404
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/does-not-exist
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  // Spring Boot 3.2+ throws NoResourceFoundException here. Without an
+  // explicit handler the catch-all would report 500, turning every
+  // 404 in the application into a server error.
+  test("404 Not Found, not 500", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

@@ -1,6 +1,6 @@
 package com.flmentalhealth.exception;
 
-import com.flmentalhealth.dto.ReportDtos;
+import com.flmentalhealth.dto.Dtos.ReportDtos;
 import com.flmentalhealth.exception.ApiExceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

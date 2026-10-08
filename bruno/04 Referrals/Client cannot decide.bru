@@ -1,0 +1,29 @@
+meta {
+  name: Client cannot decide
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/referrals/{{referralId}}/decision
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "ACCEPTED",
+    "note": "A client must not be able to do this"
+  }
+}
+
+tests {
+  test("403 Forbidden", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

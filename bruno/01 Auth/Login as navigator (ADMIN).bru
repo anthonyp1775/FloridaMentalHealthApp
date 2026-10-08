@@ -1,0 +1,44 @@
+meta {
+  name: Login as navigator (ADMIN)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{adminEmail}}",
+    "password": "{{password}}"
+  }
+}
+
+script:post-response {
+  // Stash the token so every later request can use it.
+  if (res.getStatus() === 200) {
+    bru.setEnvVar("adminToken", res.body.token);
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns a JWT", function() {
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.token.split(".")).to.have.lengthOf(3);
+  });
+
+  test("carries ROLE_ADMIN", function() {
+    expect(res.body.roles).to.include("ROLE_ADMIN");
+  });
+}

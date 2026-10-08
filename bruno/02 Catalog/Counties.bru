@@ -1,0 +1,37 @@
+meta {
+  name: Counties
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/counties
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+script:post-response {
+  // Capture ids later requests need, so nothing is hardcoded.
+  if (res.getStatus() === 200) {
+    const miami = res.body.find(c => c.name === "Miami-Dade");
+    if (miami) bru.setEnvVar("countyMiamiDade", miami.id);
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("all 67 Florida counties", function() {
+    expect(res.body).to.have.lengthOf(67);
+  });
+
+  test("each carries region and managing entity", function() {
+    expect(res.body[0]).to.have.property("region");
+    expect(res.body[0]).to.have.property("managingEntity");
+  });
+}

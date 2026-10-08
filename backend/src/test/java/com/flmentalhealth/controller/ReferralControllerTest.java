@@ -1,7 +1,7 @@
 package com.flmentalhealth.controller;
 
 import com.flmentalhealth.TestFixtures;
-import com.flmentalhealth.dto.ReferralDtos;
+import com.flmentalhealth.dto.Dtos.ReferralDtos;
 import com.flmentalhealth.entity.ReferralRequest;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateReferralException;
 import com.flmentalhealth.exception.ApiExceptions.ForbiddenOperationException;

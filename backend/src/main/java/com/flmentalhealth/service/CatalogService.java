@@ -1,6 +1,6 @@
 package com.flmentalhealth.service;
 
-import com.flmentalhealth.dto.CatalogDtos;
+import com.flmentalhealth.dto.Dtos.CatalogDtos;
 import com.flmentalhealth.entity.*;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateResourceException;
 import com.flmentalhealth.exception.ApiExceptions.ResourceNotFoundException;

@@ -1,0 +1,28 @@
+meta {
+  name: Save to shortlist
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/providers/{{providerWithCapacity}}/save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "note": "Saved by the integration suite"
+  }
+}
+
+tests {
+  test("201 created, or 409 if already saved", function() {
+    expect([201, 409]).to.include(res.getStatus());
+  });
+}

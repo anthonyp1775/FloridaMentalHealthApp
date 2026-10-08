@@ -1,7 +1,7 @@
 package com.flmentalhealth.service;
 
 import com.flmentalhealth.TestFixtures;
-import com.flmentalhealth.dto.CatalogDtos;
+import com.flmentalhealth.dto.Dtos.CatalogDtos;
 import com.flmentalhealth.entity.County;
 import com.flmentalhealth.entity.InsurancePlan;
 import com.flmentalhealth.entity.Organization;

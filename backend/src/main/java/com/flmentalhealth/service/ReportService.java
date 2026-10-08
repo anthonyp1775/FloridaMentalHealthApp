@@ -1,6 +1,6 @@
 package com.flmentalhealth.service;
 
-import com.flmentalhealth.dto.ReportDtos;
+import com.flmentalhealth.dto.Dtos.ReportDtos;
 import com.flmentalhealth.entity.InsurancePlan;
 import com.flmentalhealth.entity.ReferralRequest.Status;
 import com.flmentalhealth.repository.ProviderRepository;
@@ -17,11 +17,16 @@ import java.util.List;
  * ADMIN reporting.
  *
  * The access-gap report is the one that matters. It is not a count of
- * rows - it is the distance between how many clinicians take commercial
- * insurance and how many take Medicaid, which is the access barrier
- * this whole application exists to surface. It falls out of the data
- * the referral workflow already collects rather than requiring a
- * separate survey.
+ * rows - it is how many clinicians currently accepting clients take
+ * each kind of coverage, which is the access barrier this whole
+ * application exists to surface. It falls out of the data the referral
+ * workflow already collects rather than requiring a separate survey.
+ *
+ * The query reports the distribution it finds and asserts nothing about
+ * which way that distribution runs. Worth knowing when reading the
+ * seeded data: it shows MEDICAID above COMMERCIAL, the opposite of the
+ * usual real-world finding, because 35 sample providers were written to
+ * exercise this query rather than to model the shortage.
  */
 @Service
 @Transactional(readOnly = true)

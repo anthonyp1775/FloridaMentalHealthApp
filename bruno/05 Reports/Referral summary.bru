@@ -1,0 +1,33 @@
+meta {
+  name: Referral summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/reports/referrals
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("breaks the total down by status", function() {
+    expect(res.body).to.have.property("total");
+    expect(res.body).to.have.property("pending");
+    expect(res.body).to.have.property("accepted");
+    expect(res.body).to.have.property("waitlisted");
+  });
+
+  test("the parts sum to no more than the total", function() {
+    const parts = res.body.pending + res.body.accepted + res.body.waitlisted
+                + res.body.declined + res.body.withdrawn;
+    expect(parts).to.be.at.most(res.body.total);
+  });
+}

@@ -1,7 +1,7 @@
 package com.flmentalhealth.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flmentalhealth.dto.ReportDtos;
+import com.flmentalhealth.dto.Dtos.ReportDtos;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;

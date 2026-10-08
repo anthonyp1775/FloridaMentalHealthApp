@@ -1,0 +1,50 @@
+meta {
+  name: Search multi-filter
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/providers/search?countyId={{countyMiamiDade}}&insurancePlanId={{planMedicaid}}&acceptingOnly=true
+  auth: none
+}
+
+params:query {
+  countyId: {{countyMiamiDade}}
+  insurancePlanId: {{planMedicaid}}
+  acceptingOnly: true
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  // Miami-Dade, taking Medicaid, accepting clients. Both ids come from
+  // the Catalog requests, so this never depends on seed ordering.
+  test("combining filters narrows the result set", function() {
+    expect(res.body.totalElements).to.be.at.most(35);
+  });
+
+  test("no duplicate rows from the insurance join", function() {
+    const ids = res.body.content.map(p => p.id);
+    expect(new Set(ids).size).to.equal(ids.length);
+  });
+
+  test("every row is actually accepting", function() {
+    res.body.content.forEach(p => {
+      expect(p.acceptingNewClients).to.equal(true);
+      expect(p.openSlots).to.be.above(0);
+    });
+  });
+
+  test("every row is in the requested county", function() {
+    res.body.content.forEach(p => {
+      expect(p.county).to.equal("Miami-Dade");
+    });
+  });
+}

@@ -1,0 +1,47 @@
+meta {
+  name: Accept becomes waitlist
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/referrals/{{fullReferralId}}/decision
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "ACCEPTED",
+    "note": "Trying to accept a provider with no slots"
+  }
+}
+
+tests {
+  // THE CENTRAL TEST OF THIS SUITE.
+  //
+  // ACCEPTED was requested. The provider has no capacity. Overbooking
+  // would be wrong and failing outright would lose the request, so the
+  // referral resolves to WAITLISTED - and the response reports what
+  // ACTUALLY happened rather than what was asked for.
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("resolved to WAITLISTED, not ACCEPTED", function() {
+    expect(res.body.status).to.equal("WAITLISTED");
+  });
+
+  test("the note explains the substitution", function() {
+    expect(res.body.history[1].note).to.contain("No open slots");
+  });
+
+  test("history records WAITLISTED, matching the real outcome", function() {
+    expect(res.body.history[1].toStatus).to.equal("WAITLISTED");
+  });
+}

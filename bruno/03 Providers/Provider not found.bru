@@ -1,0 +1,27 @@
+meta {
+  name: Provider not found
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/providers/999999
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("404 Not Found", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("consistent error shape", function() {
+    expect(res.body).to.have.property("timestamp");
+    expect(res.body).to.have.property("status");
+    expect(res.body).to.have.property("message");
+    expect(res.body).to.have.property("path");
+  });
+}

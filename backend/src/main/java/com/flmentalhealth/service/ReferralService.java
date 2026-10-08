@@ -1,6 +1,6 @@
 package com.flmentalhealth.service;
 
-import com.flmentalhealth.dto.ReferralDtos;
+import com.flmentalhealth.dto.Dtos.ReferralDtos;
 import com.flmentalhealth.entity.*;
 import com.flmentalhealth.entity.ReferralRequest.Status;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateReferralException;

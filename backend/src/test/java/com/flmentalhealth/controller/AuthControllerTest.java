@@ -1,6 +1,6 @@
 package com.flmentalhealth.controller;
 
-import com.flmentalhealth.dto.AuthDtos;
+import com.flmentalhealth.dto.Dtos.AuthDtos;
 import com.flmentalhealth.exception.ApiExceptions.DuplicateResourceException;
 import com.flmentalhealth.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;

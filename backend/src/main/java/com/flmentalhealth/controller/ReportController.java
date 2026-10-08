@@ -1,6 +1,6 @@
 package com.flmentalhealth.controller;
 
-import com.flmentalhealth.dto.ReportDtos;
+import com.flmentalhealth.dto.Dtos.ReportDtos;
 import com.flmentalhealth.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

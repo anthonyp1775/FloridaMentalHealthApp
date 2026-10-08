@@ -1,0 +1,39 @@
+meta {
+  name: Access gap
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/reports/access-gap
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("one row per plan type", function() {
+    expect(res.body).to.be.an("array");
+    expect(res.body[0]).to.have.property("planType");
+    expect(res.body[0]).to.have.property("acceptingProviders");
+  });
+
+  // The report exists to surface this gap, so it should actually
+  // contain a Medicaid row to compare against.
+  test("includes Medicaid", function() {
+    const types = res.body.map(r => r.planType);
+    expect(types).to.include("MEDICAID");
+  });
+
+  test("ordered by provider count, descending", function() {
+    const counts = res.body.map(r => r.acceptingProviders);
+    const sorted = [...counts].sort((a, b) => b - a);
+    expect(counts).to.deep.equal(sorted);
+  });
+}
