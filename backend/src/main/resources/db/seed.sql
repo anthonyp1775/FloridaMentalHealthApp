@@ -53,13 +53,13 @@ INSERT INTO roles (name) VALUES
 
 INSERT INTO users (first_name, last_name, email, password) VALUES
     -- Navigator / clinic staff
-    ('Dana',    'Whitfield', 'navigator@carepathfl.org', '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
-    ('Marcus',  'Hale',      'intake@carepathfl.org',    '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
+    ('Dana',    'Whitfield', 'navigator@carepathfl.org', '$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO'),
+    ('Marcus',  'Hale',      'intake@carepathfl.org',    '$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO'),
     -- People seeking care
-    ('Alicia',  'Moreno',    'alicia.moreno@example.com','$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
-    ('Devon',   'Carter',    'devon.carter@example.com', '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
-    ('Rosalie', 'Jean',      'rosalie.jean@example.com', '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS'),
-    ('Tyler',   'Brandt',    'tyler.brandt@example.com', '$2a$11$yoULiLuBfcGWCG4aeE0ipOxZr4LetT03Tubm45cuGcV5f9SnVBZIS');
+    ('Alicia',  'Moreno',    'alicia.moreno@example.com','$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO'),
+    ('Devon',   'Carter',    'devon.carter@example.com', '$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO'),
+    ('Rosalie', 'Jean',      'rosalie.jean@example.com', '$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO'),
+    ('Tyler',   'Brandt',    'tyler.brandt@example.com', '$2b$11$ZqsiGWtoFxowdZxRcsvCIu0n/cO6BrCXFO6T5DoHmdpJuWTKrUhUO');
 
 -- Staff get BOTH roles (they can also browse as a user).
 INSERT INTO user_roles (user_id, role_id)

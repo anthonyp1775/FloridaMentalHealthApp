@@ -88,42 +88,69 @@ There is no Maven wrapper in this repository — use `mvn`, not `./mvnw`.
 
 ## Running locally
 
-### 1. Database
+### 1. Database and credentials
 
-Run `backend/src/main/resources/db/schema.sql` in MySQL Workbench.
+**Create the schema and the application's own user.** The app never
+connects as `root` — it has rights to this one schema and nothing else,
+so a mistake in a query cannot reach another database.
 
-`seed.sql` ships with `PASTE_BCRYPT_HASH_HERE` in place of the demo
-users' passwords — a real hash is deliberately not committed. To
-produce one using nothing but this project:
+```sql
+CREATE DATABASE IF NOT EXISTS fl_mental_health_db;
 
-1. Start the backend (step 2). `DataSeeder` creates `ROLE_USER` and
-   `ROLE_ADMIN` on startup, which is all registration needs.
-2. Open `http://localhost:8080/swagger-ui.html` and
-   `POST /api/auth/register` with any email and the password you intend
-   to demo with.
-3. `SELECT password FROM users WHERE email = '<that email>';` — copy
-   the `$2a$11$...` string.
-4. Paste it over **every** `PASTE_BCRYPT_HASH_HERE` in `seed.sql`.
-5. `DELETE FROM users WHERE email = '<that email>';`, then run
-   `seed.sql`.
+CREATE USER 'carepath_app'@'localhost' IDENTIFIED BY '<choose-a-password>';
+GRANT ALL PRIVILEGES ON fl_mental_health_db.* TO 'carepath_app'@'localhost';
+FLUSH PRIVILEGES;
+```
 
-The hash is self-describing, so any BCrypt hash of your chosen password
-works; this route just avoids needing a separate tool.
+The grant is scoped to this one schema. The account has no rights on
+any other database and no user administration, so a mistake in a query
+cannot reach anything else. It does need `CREATE` and `DROP` within the
+schema, because `schema.sql` creates tables and `seed.sql` truncates
+them.
+
+Then run `backend/src/main/resources/db/schema.sql` followed by
+`seed.sql`, in that order.
 
 Verification queries are commented at the bottom of both files. Queries
 1 and 2 in each should return **zero rows**.
 
-### 2. Backend
+### 2. Secrets
+
+**No credential has a default value anywhere in this repository**, so
+the application will not start until you supply two. That is deliberate:
+a working default is the thing that eventually gets committed by
+accident.
+
+```bash
+cd backend/src/main/resources
+cp application-local.properties.example application-local.properties
+```
+
+Fill in:
+
+| | |
+|---|---|
+| `DB_PASSWORD` | the password you chose for `carepath_app` above |
+| `JWT_SECRET` | at least 32 bytes — `openssl rand -hex 32` |
+
+`application-local.properties` is gitignored. The `.example` file is
+not, so a fresh clone can see what needs setting without ever seeing a
+value. Environment variables of the same name override it, which is how
+the `prod` profile supplies both.
+
+`JwtService` rejects a key shorter than 32 bytes at startup rather than
+signing tokens with a weak one.
+
+### 3. Backend
 
 ```bash
 cd backend
-# set your MySQL password in src/main/resources/application-dev.properties
 mvn spring-boot:run
 ```
 
 Runs on http://localhost:8080 — API docs at `/swagger-ui.html`
 
-### 3. Frontend
+### 4. Frontend
 
 ```bash
 cd frontend
@@ -135,15 +162,20 @@ Runs on http://localhost:5173, proxying `/api` to the backend.
 
 ### Signing in
 
-Both accounts use whichever password you hashed above.
+All seeded accounts use the password `Password123`. The data is
+synthetic and the accounts are demo-only, so this one is published
+deliberately — it is not a credential for anything real.
 
 | | Email | Sees |
 |---|---|---|
-| Person seeking care | `alicia.moreno@example.com` | Search, Saved, My Referrals, Profile |
+| Person seeking care | `alicia.moreno@example.com` | Search, Saved, My Referrals |
 | Navigator (admin) | `navigator@carepathfl.org` | ...plus Queue, Directory, Reports |
 
 `/resources` — the statewide crisis resources page — is reachable
 without logging in, by design.
+
+To change it, generate a BCrypt hash at strength 11 and replace every
+occurrence in `seed.sql`. Any tool works; the hash is self-describing.
 
 ### Tests and coverage
 
