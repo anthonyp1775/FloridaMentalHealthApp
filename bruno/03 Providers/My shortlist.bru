@@ -1,0 +1,26 @@
+meta {
+  name: My shortlist
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/providers/saved
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  // There is no user id in the request - it comes from the token -
+  // so this can only ever return the caller's own list.
+  test("returns a list", function() {
+    expect(res.body).to.be.an("array");
+  });
+}

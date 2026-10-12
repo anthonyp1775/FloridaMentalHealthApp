@@ -1,0 +1,52 @@
+meta {
+  name: Submit referral
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/referrals
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "providerId": {{providerWithCapacity}},
+    "message": "Submitted by the integration suite",
+    "preferredContact": "EMAIL"
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setEnvVar("referralId", res.body.id);
+  }
+}
+
+tests {
+  test("201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("starts PENDING", function() {
+    expect(res.body.status).to.equal("PENDING");
+  });
+
+  // The audit trail begins at submission, not at resolution.
+  test("creation history row exists", function() {
+    expect(res.body.history).to.have.lengthOf(1);
+    expect(res.body.history[0].fromStatus).to.equal(null);
+    expect(res.body.history[0].toStatus).to.equal("PENDING");
+  });
+
+  test("history row is attributed and timestamped", function() {
+    expect(res.body.history[0].changedBy).to.be.a("string");
+    expect(res.body.history[0].createdAt).to.be.a("string");
+  });
+}

@@ -1,0 +1,36 @@
+meta {
+  name: Capacity invariant is enforced
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/api/providers/{{providerWithCapacity}}/capacity
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "openSlots": 0,
+    "acceptingNewClients": true,
+    "note": "This contradiction must be rejected"
+  }
+}
+
+tests {
+  // A directory that says someone is available when they are not is
+  // worse than no directory at all.
+  test("400 Bad Request", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("explains why", function() {
+    expect(res.body.message).to.contain("zero open slots");
+  });
+}

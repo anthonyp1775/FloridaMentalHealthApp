@@ -1,0 +1,35 @@
+meta {
+  name: Search accepting only
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/providers/search?acceptingOnly=true
+  auth: none
+}
+
+params:query {
+  acceptingOnly: true
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("narrower than the unfiltered search", function() {
+    expect(res.body.totalElements).to.be.below(35);
+  });
+
+  test("every result is actually accepting", function() {
+    res.body.content.forEach(p => {
+      expect(p.acceptingNewClients).to.equal(true);
+      expect(p.openSlots).to.be.above(0);
+    });
+  });
+}

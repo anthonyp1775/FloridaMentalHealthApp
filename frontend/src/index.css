@@ -1,0 +1,714 @@
+/* ==========================================================================
+   Florida Mental Health App
+
+   Audience note: someone using this has often already spent a week on
+   dead-end phone calls. Type is set larger than a typical dashboard,
+   contrast is high, and the one thing other directories never tell you -
+   whether this person can actually see you - is given structural weight
+   rather than a badge in a corner.
+   ========================================================================== */
+
+:root {
+  /* --- color -------------------------------------------------------- */
+  --ink:        #1B2A33;   /* body text - blue-slate, not tinted black   */
+  --ink-soft:   #51616B;   /* secondary text                             */
+  --ink-faint:  #7C8A92;   /* metadata                                   */
+
+  --paper:      #FCFBF9;   /* page                                       */
+  --surface:    #FFFFFF;   /* cards                                      */
+  --surface-sunk: #F2F0EB; /* wells, filter bar                          */
+  --line:       #E0DCD3;
+  --line-soft:  #EEEBE4;
+
+  --accent:     #2D6A6A;   /* interactive - deep teal                    */
+  --accent-ink: #1F4D4D;
+  --accent-wash:#E6EFEE;
+
+  /* Status. Always rendered WITH text - never color alone. */
+  --available:  #2F7D5B;
+  --available-wash: #E7F2EC;
+  --waitlist:   #9A6B1F;
+  --waitlist-wash:  #F6EEDF;
+  --closed:     #7A7A72;
+  --closed-wash:    #EFEEEA;
+
+  --danger:     #A23B2E;
+  --danger-wash:#F8E9E7;
+
+  /* --- type --------------------------------------------------------- */
+  /* Public Sans was built for US public services. This is one.          */
+  --sans: 'Public Sans', system-ui, -apple-system, sans-serif;
+  --serif: 'Newsreader', Georgia, serif;
+
+  --step--1: 0.875rem;
+  --step-0:  1.0625rem;   /* 17px base - larger than a typical dashboard */
+  --step-1:  1.25rem;
+  --step-2:  1.5rem;
+  --step-3:  2rem;
+  --step-4:  2.75rem;
+
+  /* --- space -------------------------------------------------------- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  --shadow: 0 1px 2px rgba(27, 42, 51, 0.06),
+            0 4px 12px rgba(27, 42, 51, 0.04);
+
+  --measure: 68ch;
+}
+
+/* ==========================================================================
+   base
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0 0 var(--s-3);
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+
+p { margin: 0 0 var(--s-4); max-width: var(--measure); }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--accent-ink); }
+
+/* Keyboard focus must always be visible. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Visible only to screen readers. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ==========================================================================
+   layout
+   ========================================================================== */
+
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+.page {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--s-6) var(--s-4) var(--s-7);
+  flex: 1;
+}
+
+.page--narrow { max-width: 620px; }
+
+.page__head { margin-bottom: var(--s-6); }
+.page__head p { color: var(--ink-soft); margin-bottom: 0; }
+
+/* ==========================================================================
+   crisis bar
+   Steady, not alarming. Someone in crisis does not need a red flashing
+   banner; they need a number that is always in the same place.
+   ========================================================================== */
+
+.crisis {
+  background: var(--ink);
+  color: #EEF2F3;
+  font-size: var(--step--1);
+  padding: var(--s-3) var(--s-4);
+}
+
+.crisis__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-5);
+}
+
+.crisis strong { font-weight: 700; }
+
+.crisis a {
+  color: #FFFFFF;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.crisis__note { color: #A9B7BD; }
+
+/* ==========================================================================
+   masthead
+   ========================================================================== */
+
+.masthead {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--s-4);
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+
+.masthead__mark {
+  font-family: var(--serif);
+  font-size: var(--step-1);
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav { display: flex; gap: var(--s-4); flex-wrap: wrap; flex: 1; }
+
+.nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: var(--s-1) 0;
+  border-bottom: 2px solid transparent;
+}
+
+.nav a:hover { color: var(--ink); }
+
+.nav a.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+.masthead__who {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+/* ==========================================================================
+   provider card
+   The left edge carries availability. It is the card's most important
+   fact, so it gets structural weight rather than a badge in a corner.
+   ========================================================================== */
+
+.provider {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--closed);
+  border-radius: var(--radius);
+  padding: var(--s-5);
+  margin-bottom: var(--s-4);
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.provider:hover { border-color: var(--line); box-shadow: var(--shadow); }
+.provider--available { border-left-color: var(--available); }
+.provider--waitlist  { border-left-color: var(--waitlist); }
+
+.provider__name {
+  font-family: var(--serif);
+  font-size: var(--step-1);
+  margin: 0 0 var(--s-1);
+}
+
+.provider__cred {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  margin-bottom: var(--s-3);
+}
+
+.provider__where { color: var(--ink-soft); margin-bottom: var(--s-3); }
+
+.provider__status { font-weight: 600; font-size: var(--step--1); }
+.provider__status--available { color: var(--available); }
+.provider__status--waitlist  { color: var(--waitlist); }
+.provider__status--closed    { color: var(--closed); }
+
+.provider__wait { color: var(--ink-faint); font-weight: 400; }
+
+/* ==========================================================================
+   tags
+   ========================================================================== */
+
+.tags { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+
+.tag {
+  font-size: var(--step--1);
+  padding: 2px var(--s-2);
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  color: var(--ink-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.tag--prescriber { background: var(--accent-wash); color: var(--accent-ink); border-color: #CBDEDC; }
+
+/* ==========================================================================
+   forms
+   ========================================================================== */
+
+.field { margin-bottom: var(--s-4); }
+
+.field label {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 600;
+  margin-bottom: var(--s-1);
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  font: inherit;
+  font-size: var(--step-0);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-3);
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-wash);
+  outline-offset: 0;
+}
+
+.textarea { min-height: 7rem; resize: vertical; }
+
+.field__hint { font-size: var(--step--1); color: var(--ink-faint); margin-top: var(--s-1); }
+.field__error { font-size: var(--step--1); color: var(--danger); margin-top: var(--s-1); }
+
+.check { display: flex; align-items: center; gap: var(--s-2); }
+.check input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.check label { margin: 0; font-weight: 400; }
+
+/* ==========================================================================
+   buttons
+   ========================================================================== */
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--step-0);
+  padding: var(--s-3) var(--s-5);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+.btn:hover:not(:disabled) { background: var(--accent-ink); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn--quiet {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn--quiet:hover:not(:disabled) { background: var(--surface-sunk); }
+
+.btn--danger { background: var(--danger); }
+.btn--danger:hover:not(:disabled) { background: #872F24; }
+
+.btn--small { font-size: var(--step--1); padding: var(--s-2) var(--s-3); }
+.btn--block { width: 100%; }
+
+/* ==========================================================================
+   filters
+   ========================================================================== */
+
+.filters {
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s-5);
+  margin-bottom: var(--s-5);
+}
+
+.filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--s-4);
+}
+
+.filters__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.filters__toggles { display: flex; gap: var(--s-5); flex-wrap: wrap; }
+
+/* ==========================================================================
+   status / feedback
+   ========================================================================== */
+
+.notice {
+  padding: var(--s-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-sunk);
+  margin-bottom: var(--s-4);
+}
+
+.notice--error   { background: var(--danger-wash);    border-color: #E8C9C4; color: #7A2B21; }
+.notice--ok      { background: var(--available-wash); border-color: #C6DED1; color: #1E5A40; }
+.notice--waitlist{ background: var(--waitlist-wash);  border-color: #E4D2AE; color: #7A5417; }
+
+.empty {
+  text-align: center;
+  padding: var(--s-7) var(--s-4);
+  color: var(--ink-soft);
+}
+
+.empty h2 { color: var(--ink); }
+
+.spinner {
+  display: inline-block;
+  width: 1.1rem; height: 1.1rem;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading { display: flex; align-items: center; gap: var(--s-3); color: var(--ink-soft); padding: var(--s-6) 0; }
+
+/* ==========================================================================
+   tables
+   ========================================================================== */
+
+.table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  padding: var(--s-3);
+  border-bottom: 2px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.table td { padding: var(--s-3); border-bottom: 1px solid var(--line-soft); }
+.table tr:hover td { background: var(--surface-sunk); }
+
+/* ==========================================================================
+   status timeline
+   A real sequence, so it earns its connecting line.
+   ========================================================================== */
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+
+.timeline li {
+  position: relative;
+  padding: 0 0 var(--s-5) var(--s-5);
+  border-left: 2px solid var(--line);
+}
+
+.timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -6px; top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.timeline__status { font-weight: 600; }
+.timeline__meta { font-size: var(--step--1); color: var(--ink-faint); }
+
+/* ==========================================================================
+   misc
+   ========================================================================== */
+
+.stack > * + * { margin-top: var(--s-4); }
+.row { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+.row--end { justify-content: flex-end; }
+.muted { color: var(--ink-soft); }
+.small { font-size: var(--step--1); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s-5);
+}
+
+.sample-note {
+  font-size: var(--step--1);
+  color: var(--ink-faint);
+  border-top: 1px solid var(--line-soft);
+  padding-top: var(--s-3);
+  margin-top: var(--s-6);
+}
+
+/* ==========================================================================
+   provider detail
+   Two columns on wide screens: the reading column and the action column.
+   Stacks on narrow, with the referral form FIRST - on a phone, the
+   thing you came to do should not be below four cards of detail.
+   ========================================================================== */
+
+.detail {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-5);
+}
+
+@media (min-width: 880px) {
+  .detail { grid-template-columns: 1fr 22rem; align-items: start; }
+}
+
+@media (max-width: 879px) {
+  .detail > aside { order: -1; }
+}
+
+/* ==========================================================================
+   referral status
+   ========================================================================== */
+
+.status {
+  font-weight: 600;
+  font-size: var(--step--1);
+  padding: 2px var(--s-3);
+  border-radius: var(--radius);
+  white-space: nowrap;
+  background: var(--surface-sunk);
+  color: var(--ink-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.status--pending    { background: var(--accent-wash);    color: var(--accent-ink); border-color: #CBDEDC; }
+.status--accepted   { background: var(--available-wash); color: #1E5A40; border-color: #C6DED1; }
+.status--waitlisted { background: var(--waitlist-wash);  color: #7A5417; border-color: #E4D2AE; }
+.status--declined   { background: var(--danger-wash);    color: #7A2B21; border-color: #E8C9C4; }
+
+/* ==========================================================================
+   resources
+   Real phone numbers, so they are set large enough to read aloud to
+   someone or dial one-handed.
+   ========================================================================== */
+
+.resources { list-style: none; margin: 0 0 var(--s-5); padding: 0; display: grid; gap: var(--s-4); }
+
+@media (min-width: 720px) {
+  .resources { grid-template-columns: repeat(2, 1fr); }
+}
+
+.resource {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s-5);
+}
+
+.resource--urgent { border-left: 5px solid var(--accent); }
+
+.resource__name { font-size: var(--step-1); margin-bottom: var(--s-2); }
+
+.resource__contact {
+  font-size: var(--step-2);
+  font-family: var(--serif);
+  margin: 0 0 var(--s-2);
+}
+
+.resource__note { color: var(--ink-soft); font-size: var(--step--1); margin-bottom: var(--s-2); }
+
+/* ==========================================================================
+   modal
+   ========================================================================== */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 42, 51, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--s-5);
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--s-6);
+  width: 100%;
+  max-width: 34rem;
+  margin: auto;
+  box-shadow: 0 12px 40px rgba(27, 42, 51, 0.22);
+}
+
+/* ==========================================================================
+   access gap
+   Bars relative to the largest value, so the Medicaid-vs-commercial gap
+   is visible rather than something you work out from two numbers.
+   ========================================================================== */
+
+.gap { list-style: none; margin: var(--s-4) 0 0; padding: 0; }
+
+.gap li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr 3ch;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+}
+
+.gap__label { font-size: var(--step--1); }
+
+.gap__bar {
+  background: var(--surface-sunk);
+  border-radius: 2px;
+  height: 1.4rem;
+  overflow: hidden;
+}
+
+.gap__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  min-width: 2px;
+}
+
+.gap__value { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+
+@media (max-width: 560px) {
+  .gap li { grid-template-columns: 1fr 3ch; }
+  .gap__bar { grid-column: 1 / -1; }
+}
+
+/* ==========================================================================
+   figures
+   ========================================================================== */
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+.figure__value {
+  font-family: var(--serif);
+  font-size: var(--step-3);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.figure__label { font-size: var(--step--1); color: var(--ink-soft); }
+
+/* ==========================================================================
+   dark theme
+   Not an inversion. The paper tones become low-chroma blue-slates, and
+   the status colors are lightened just enough to keep their contrast
+   against a dark surface - a dark background makes a mid-tone green
+   read as muddy rather than as "available".
+   ========================================================================== */
+
+:root[data-theme="dark"] {
+  --ink:        #E6EAEC;
+  --ink-soft:   #A8B4BA;
+  --ink-faint:  #7E8C93;
+
+  --paper:      #141C21;
+  --surface:    #1B252B;
+  --surface-sunk: #222E35;
+  --line:       #32424A;
+  --line-soft:  #283539;
+
+  --accent:     #6FB3B0;
+  --accent-ink: #9FD1CF;
+  --accent-wash:#1F3331;
+
+  --available:  #63BC8F;
+  --available-wash: #19352A;
+  --waitlist:   #D9A45C;
+  --waitlist-wash:  #372C18;
+  --closed:     #93998F;
+  --closed-wash:    #272A26;
+
+  --danger:     #E08073;
+  --danger-wash:#3A211D;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+            0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons keep white label text on light, but the dark accent is light
+   enough that white-on-it fails contrast. Use the page ink instead. */
+:root[data-theme="dark"] .btn { color: #10181C; }
+:root[data-theme="dark"] .btn--quiet { color: var(--ink); }
+:root[data-theme="dark"] .btn--danger { color: #1A0F0D; }
+
+:root[data-theme="dark"] .crisis { background: #0D1317; }
+:root[data-theme="dark"] .crisis__note { color: #8A979D; }
+
+:root[data-theme="dark"] .notice--error   { background: var(--danger-wash);    border-color: #5A332C; color: #F0B8AF; }
+:root[data-theme="dark"] .notice--ok      { background: var(--available-wash); border-color: #2C5A43; color: #A8DCC0; }
+:root[data-theme="dark"] .notice--waitlist{ background: var(--waitlist-wash);  border-color: #5A4524; color: #EBC58A; }
+
+:root[data-theme="dark"] .status--pending    { background: var(--accent-wash);    color: var(--accent-ink); border-color: #2C4745; }
+:root[data-theme="dark"] .status--accepted   { background: var(--available-wash); color: #A8DCC0; border-color: #2C5A43; }
+:root[data-theme="dark"] .status--waitlisted { background: var(--waitlist-wash);  color: #EBC58A; border-color: #5A4524; }
+:root[data-theme="dark"] .status--declined   { background: var(--danger-wash);    color: #F0B8AF; border-color: #5A332C; }
+
+:root[data-theme="dark"] .tag--prescriber { border-color: #2C4745; }
+
+:root[data-theme="dark"] .backdrop { background: rgba(0, 0, 0, 0.6); }
+
+@media (max-width: 640px) {
+  :root { --step-3: 1.6rem; --step-4: 2rem; }
+  .page { padding: var(--s-5) var(--s-4) var(--s-6); }
+  .masthead__inner { gap: var(--s-3); }
+}

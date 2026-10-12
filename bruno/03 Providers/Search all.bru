@@ -1,0 +1,44 @@
+meta {
+  name: Search all
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/providers/search
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    // Find one provider WITH capacity and one WITHOUT, so the
+    // referral tests below never depend on hardcoded ids.
+    const open = res.body.content.find(p => p.acceptingNewClients && p.openSlots > 0);
+    const full = res.body.content.find(p => !p.acceptingNewClients || p.openSlots === 0);
+    if (open) bru.setEnvVar("providerWithCapacity", open.id);
+    if (full) bru.setEnvVar("providerAtCapacity", full.id);
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("35 active providers in the directory", function() {
+    expect(res.body.totalElements).to.equal(35);
+  });
+
+  test("paginated", function() {
+    expect(res.body.content.length).to.be.at.most(20);
+  });
+
+  test("every result carries capacity information", function() {
+    expect(res.body.content[0]).to.have.property("openSlots");
+    expect(res.body.content[0]).to.have.property("acceptingNewClients");
+  });
+}

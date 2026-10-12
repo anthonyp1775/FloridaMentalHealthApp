@@ -1,0 +1,23 @@
+meta {
+  name: Tampered token
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/counties
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}x
+}
+
+tests {
+  // One extra character invalidates the signature. A JWT payload is
+  // only base64-encoded, not encrypted - the signature is what makes
+  // it tamper-evident.
+  test("401 Unauthorized", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

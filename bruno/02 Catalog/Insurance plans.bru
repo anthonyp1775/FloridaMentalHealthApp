@@ -1,0 +1,40 @@
+meta {
+  name: Insurance plans
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/insurance-plans
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+script:post-response {
+  // Capture a plan id the search filter can use, so the multi-filter
+  // request never depends on seed ordering.
+  if (res.getStatus() === 200) {
+    const medicaid = res.body.find(p => p.planType === "MEDICAID");
+    if (medicaid) bru.setEnvVar("planMedicaid", medicaid.id);
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("covers Medicaid, commercial and sliding scale", function() {
+    const types = res.body.map(p => p.planType);
+    expect(types).to.include("MEDICAID");
+    expect(types).to.include("COMMERCIAL");
+    expect(types).to.include("SLIDING_SCALE");
+  });
+
+  test("a Medicaid plan id was captured for the search filter", function() {
+    expect(Number(bru.getEnvVar("planMedicaid"))).to.be.above(0);
+  });
+}

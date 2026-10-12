@@ -1,0 +1,54 @@
+meta {
+  name: Provider detail
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/providers/{{providerWithCapacity}}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setEnvVar("slotsBefore", res.body.openSlots);
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns the accepted coverage list", function() {
+    expect(res.body.insurancePlans).to.be.an("array");
+  });
+
+  test("organisation and county are flattened to strings", function() {
+    expect(res.body.organization).to.be.a("string");
+    expect(res.body.county).to.be.a("string");
+  });
+
+  test("carries the detail fields the summary leaves out", function() {
+    expect(res.body).to.have.property("bio");
+    expect(res.body).to.have.property("yearsExperience");
+    expect(res.body).to.have.property("waitlistCount");
+  });
+
+  // The consolidation removed Specialty, Language and Population.
+  // These assertions fail loudly if any of them come back.
+  test("the removed collections are gone", function() {
+    expect(res.body).to.not.have.property("specialties");
+    expect(res.body).to.not.have.property("languages");
+    expect(res.body).to.not.have.property("populations");
+  });
+
+  test("never exposes an entity's internals", function() {
+    expect(res.body).to.not.have.property("password");
+    expect(res.body).to.not.have.property("organizationId");
+  });
+}

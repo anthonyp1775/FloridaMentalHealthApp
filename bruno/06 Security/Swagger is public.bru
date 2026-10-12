@@ -1,0 +1,23 @@
+meta {
+  name: Swagger is public
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v3/api-docs
+  auth: none
+}
+
+tests {
+  test("200 OK without a token", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("documents every controller", function() {
+    const paths = Object.keys(res.body.paths);
+    expect(paths.some(p => p.includes("/api/auth"))).to.equal(true);
+    expect(paths.some(p => p.includes("/api/providers"))).to.equal(true);
+    expect(paths.some(p => p.includes("/api/referrals"))).to.equal(true);
+  });
+}

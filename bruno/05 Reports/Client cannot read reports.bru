@@ -1,0 +1,20 @@
+meta {
+  name: Client cannot read reports
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/reports/access-gap
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("403 Forbidden", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+}

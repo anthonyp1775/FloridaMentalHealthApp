@@ -1,0 +1,16 @@
+meta {
+  name: Wrong HTTP method is 405
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/auth/login
+  auth: none
+}
+
+tests {
+  test("405 Method Not Allowed, not 500", function() {
+    expect(res.getStatus()).to.equal(405);
+  });
+}

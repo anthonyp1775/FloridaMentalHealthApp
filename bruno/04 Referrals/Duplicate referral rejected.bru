@@ -1,0 +1,36 @@
+meta {
+  name: Duplicate referral rejected
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/referrals
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "providerId": {{providerWithCapacity}},
+    "message": "Second attempt - should be refused",
+    "preferredContact": "EMAIL"
+  }
+}
+
+tests {
+  // MySQL cannot express "unique only when status = PENDING" - there
+  // is no partial unique index - so ReferralService enforces it.
+  test("409 Conflict", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+
+  test("says why", function() {
+    expect(res.body.message).to.contain("pending request");
+  });
+}

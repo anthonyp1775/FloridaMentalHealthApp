@@ -1,0 +1,36 @@
+meta {
+  name: Removed lookups are gone
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/specialties
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+docs {
+  Specialty, Language, Population and ClientProfile were removed when the
+  data model was consolidated from 18 tables to 11. This request proves
+  the endpoints went with them rather than lingering as dead routes.
+
+  404 and not 500 also exercises NoResourceFoundException in
+  GlobalExceptionHandler — without an explicit handler for it, Spring's
+  catch-all turns every unmatched URL into a server error.
+}
+
+tests {
+  test("404, not 500", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("still the standard error body", function() {
+    expect(res.body).to.have.property("timestamp");
+    expect(res.body).to.have.property("status", 404);
+    expect(res.body).to.have.property("path");
+  });
+}

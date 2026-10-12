@@ -1,0 +1,29 @@
+meta {
+  name: County capacity
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/reports/county-capacity
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  // Joins provider -> organization -> county, which is why county
+  // lives on the organization rather than on every provider row.
+  test("rows carry county, region and capacity", function() {
+    expect(res.body[0]).to.have.property("county");
+    expect(res.body[0]).to.have.property("region");
+    expect(res.body[0]).to.have.property("openSlots");
+    expect(res.body[0]).to.have.property("waitlisted");
+  });
+}

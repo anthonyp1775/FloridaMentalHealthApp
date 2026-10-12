@@ -1,0 +1,30 @@
+meta {
+  name: Register duplicate email
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "Alicia",
+    "lastName": "Moreno",
+    "email": "{{clientEmail}}",
+    "password": "Password123"
+  }
+}
+
+tests {
+  test("409 Conflict", function() {
+    expect(res.getStatus()).to.equal(409);
+  });
+}

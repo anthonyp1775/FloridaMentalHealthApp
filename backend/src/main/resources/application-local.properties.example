@@ -1,0 +1,21 @@
+# Copy this file to application-local.properties and fill in real values.
+#
+#   cp application-local.properties.example application-local.properties
+#
+# application-local.properties is gitignored. This .example file is not,
+# so a new clone can see what needs setting without ever seeing a
+# credential.
+#
+# An OS environment variable of the same name overrides anything here,
+# which is how the deployed profile supplies these.
+
+# Password for the carepath_app MySQL user created in README.md step 2.
+DB_PASSWORD=
+
+# Optional - defaults to carepath_app.
+# DB_USERNAME=carepath_app
+
+# HMAC signing key for JWTs. Must be at least 32 bytes; JwtService
+# refuses to start on anything shorter. Generate one with:
+#   openssl rand -hex 32
+JWT_SECRET=

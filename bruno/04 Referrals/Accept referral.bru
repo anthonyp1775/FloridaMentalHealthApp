@@ -1,0 +1,46 @@
+meta {
+  name: Accept referral
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/referrals/{{referralId}}/decision
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "ACCEPTED",
+    "note": "Open slot confirmed; intake scheduled"
+  }
+}
+
+tests {
+  test("200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("resolves to ACCEPTED", function() {
+    expect(res.body.status).to.equal("ACCEPTED");
+  });
+
+  test("records who resolved it and when", function() {
+    expect(res.body.resolvedBy).to.be.a("string");
+    expect(res.body.resolvedAt).to.be.a("string");
+  });
+
+  // The status change and its audit row are written in one
+  // transaction, so one cannot exist without the other.
+  test("second history row records the transition", function() {
+    expect(res.body.history).to.have.lengthOf(2);
+    expect(res.body.history[1].fromStatus).to.equal("PENDING");
+    expect(res.body.history[1].toStatus).to.equal("ACCEPTED");
+  });
+}

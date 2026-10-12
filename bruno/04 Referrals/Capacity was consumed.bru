@@ -1,0 +1,23 @@
+meta {
+  name: Capacity was consumed
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/providers/{{providerWithCapacity}}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  // Accepting a referral must actually move the provider's capacity,
+  // not merely change a status somewhere.
+  test("open slots dropped by exactly one", function() {
+    const before = Number(bru.getEnvVar("slotsBefore"));
+    expect(res.body.openSlots).to.equal(before - 1);
+  });
+}

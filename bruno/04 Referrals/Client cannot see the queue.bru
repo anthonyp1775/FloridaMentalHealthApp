@@ -1,0 +1,20 @@
+meta {
+  name: Client cannot see the queue
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/referrals/queue
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{clientToken}}
+}
+
+tests {
+  test("403 Forbidden", function() {
+    expect(res.getStatus()).to.equal(403);
+  });
+}
